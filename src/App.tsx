@@ -1,10 +1,11 @@
 import * as React from 'react';
 import date from 'date-and-time';
+import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import Checkbox from '@mui/material/Checkbox';
 import CleaningCard, { CardInputs, CardSchedule } from './CleaningCard';
+import EditIcon from '@mui/icons-material/Edit';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
@@ -13,191 +14,148 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import LocalStorageList from './LocalStorage';
 import MenuIcon from '@mui/icons-material/Menu';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import PaletteIcon from '@mui/icons-material/Palette';
+import RemoveIcon from '@mui/icons-material/Remove';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import SaveIcon from '@mui/icons-material/Save';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 
 export default function RecipeReviewCard() {
-  const [currentDateViewStr, setCurrentDateViewStr] = React.useState(date.format(new Date(), 'YYYY/MM/DD'));
 
   const [open, setOpen] = React.useState(false)
+  const [isEditingStubNumber, setIsEditingStubNumber] = React.useState(false)
 
-  const [showAllDays, setShowAllDays] = React.useState((localStorage.getItem('showAllDays') ?? 'false') === 'true')
+  const [isHorizontal, setIsHorizontal] = React.useState((localStorage.getItem('isHorizontal') ?? 'false') === 'true')
 
-  const dailyTasks: CardInputs = {
-    title: 'Daily quests',
-    subtitle: 'Try to complete these every day!',
-    localStorageTasks: new LocalStorageList('DailyList', [
-      'Clean dishes',
-      'Clear out clutter',
-      'Make beds',
-      'One load of laundry',
-      'Scoop litter',
-      'Sort mail',
-      'Take out trash',
-    ], CardSchedule.Daily),
-    schedule: CardSchedule.Daily
-  };
+  const [stubNumber, setStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '5'));
 
-  const monthlyTasks: CardInputs = {
-    title: 'Monthly quests',
-    subtitle: 'Try to complete these within the month!',
-    localStorageTasks: new LocalStorageList('MonthlyList', [
-      'Clean out fridge',
-      'Clean out garage',
-      'Clean out oven',
-      'Deep clean sofas',
-      'Dust fans',
-      'Dust lights',
-      'Dust vents',
-      'Replace litter',
-      'Wash windows',
-    ], CardSchedule.Monthly),
-    schedule: CardSchedule.Monthly
-  };
+  const [nextStubNumber, setNextStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '5'));
 
-  const mondayTasks: CardInputs = {
-    title: 'Monday quests - Bath rooms',
-    subtitle: 'Try to complete these every Monday!',
-    localStorageTasks: new LocalStorageList('MondayList', [
-      'Clean floors',
-      'Clean mirrors',
-      'Clean surfaces',
-      'Wash towels and mats',
-    ], CardSchedule.Monday),
-    schedule: CardSchedule.Monday
-  };
-
-  const tuesdayTasks: CardInputs = {
-    title: 'Tuesday quests - Living room',
-    subtitle: 'Try to complete these every Tuesday!',
-    localStorageTasks: new LocalStorageList('TuesdayList', [
-      'Clean floors',
-      'Clear out clutter',
-      'Dust surfaces',
-      'Wash sheets',
-    ], CardSchedule.Tuesday),
-    schedule: CardSchedule.Tuesday
-  };
-
-  const wednesdayTasks: CardInputs = {
-    title: 'Wednesday quests - Kitchen',
-    subtitle: 'Try to complete these every Wednesday!',
-    localStorageTasks: new LocalStorageList('WednesdayList', [
-      'Clean appliances',
-      'Clean floors',
-      'Clean kitchen table',
-      'Clean sink and counters',
-    ], CardSchedule.Wednesday),
-    schedule: CardSchedule.Wednesday
-  };
-
-  const thursdayTasks: CardInputs = {
-    title: 'Thursday quests - Bed rooms',
-    subtitle: 'Try to complete these every Thursday!',
-    localStorageTasks: new LocalStorageList('ThursdayList', [
-      'Clean floors',
-      'Clean surfaces',
-      'Clear out clutter',
-      'Wash bedding',
-    ], CardSchedule.Thursday),
-    schedule: CardSchedule.Thursday
-  };
-
-  const fridayTasks: CardInputs = {
-    title: 'Friday quests - Dining room',
-    subtitle: 'Try to complete these every Friday!',
-    localStorageTasks: new LocalStorageList('FridayList', [
-      'Clean dining table',
-      'Clean floors',
-      'Clear out clutter',
-      'Clean surfaces',
-    ], CardSchedule.Friday),
-    schedule: CardSchedule.Friday
-  };
-
-  const saturdayTasks: CardInputs = {
-    title: 'Saturday quests - Meals',
-    subtitle: 'Try to complete these every Saturday!',
-    localStorageTasks: new LocalStorageList('SaturdayList', [
-      'Clean out fridge',
-      'Plan meals',
-      'Get groceries',
-      'Cook meals',
-    ], CardSchedule.Saturday),
-    schedule: CardSchedule.Saturday
-  };
-
-  const sundayTasks: CardInputs = {
-    title: 'Sunday quests - Front room',
-    subtitle: 'Try to complete these every Sunday!',
-    localStorageTasks: new LocalStorageList('SundayList', [
-      'Clean door knobs',
-      'Clean floors',
-      'Clean surfaces',
-      'Clear out clutter',
-    ], CardSchedule.Sunday),
-    schedule: CardSchedule.Sunday
-  };
-
-  let weekdays = [
-    mondayTasks,
-    tuesdayTasks,
-    wednesdayTasks,
-    thursdayTasks,
-    fridayTasks,
-    saturdayTasks,
-    sundayTasks,
-  ];
-
-  const getTaskLists = (dateView: Date, showAllDays: boolean): Array<CardInputs> => {
-    dailyTasks.localStorageTasks.moveDate(dateView);
-    monthlyTasks.localStorageTasks.moveDate(dateView);
-    weekdays.forEach(weekday => weekday.localStorageTasks.moveDate(dateView));
-    let tasks = [
-      dailyTasks,
-      monthlyTasks
-    ]
-    if (showAllDays) {
-      tasks = [...weekdays, ...tasks];
-    } else {
-      tasks = [weekdays[(dateView.getDay() - 1 + weekdays.length) % weekdays.length], ...tasks];
-    }
-    return tasks;
-  };
-
-  const handleToggleShowAllDays = () => {
-    const newShowAllDays = !showAllDays;
-    setShowAllDays(newShowAllDays);
-    localStorage.setItem('showAllDays', newShowAllDays.toString())
-    setTaskLists(getTaskLists(date.parse(currentDateViewStr, 'YYYY/MM/DD'), newShowAllDays));
+  const onUpdateStubNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('e.validity', e.target.validity.valid);
+    if (e.target.validity.valid || e.target.value === '') setNextStubNumber(e.target.value)
   }
 
-  const [taskLists, setTaskLists] = React.useState(getTaskLists(new Date(), showAllDays));
+  const handleToggleDirection = () => {
+    const newIsHorizontal = !isHorizontal;
+    setIsHorizontal(newIsHorizontal);
+    localStorage.setItem('isHorizontal', newIsHorizontal.toString())
+    setSelectedColumn(null);
+    setSelectedRow(null);
+  }
 
-  const moveToPreviousDay = () => {
-    const previousDay = date.addDays(date.parse(currentDateViewStr, 'YYYY/MM/DD'), -1);
-    setCurrentDateViewStr(date.format(previousDay, 'YYYY/MM/DD'));
-    setTaskLists(getTaskLists(previousDay, showAllDays));
-  };
+  const handleToggleEditStubNumber = () => {
+    const newIsEditingStubNumber = !isEditingStubNumber;
+    setIsEditingStubNumber(newIsEditingStubNumber);
+    if (!newIsEditingStubNumber) {
+      if (nextStubNumber <= 10 && nextStubNumber >= 1) {
+        setStubNumber(nextStubNumber);
+        localStorage.setItem('stubNumber', nextStubNumber);
+      } else {
+        setNextStubNumber(stubNumber);
+      }
+    }
+  }
 
-  const moveToNextDay = () => {
-    const nextDay = date.addDays(date.parse(currentDateViewStr, 'YYYY/MM/DD'), 1);
-    setCurrentDateViewStr(date.format(nextDay, 'YYYY/MM/DD'));
-    setTaskLists(getTaskLists(nextDay, showAllDays));
-  };
+  const getStubs = (): Array<Array<string>> => {
+    const newStubs: Array<Array<string>> = [];
+    if (isHorizontal) {
+      for (let x = 0; x < colorStubs.length; x++) {
+        const newStub: Array<string> = [];
+        newStubs[x] = newStub;
+        const stub = colorStubs[x];
+        for (let y = 0; y < stub.length; y++) {
+          const color = stub[y];
+          newStubs[x][y] = color;
+        }
+      }
+    } else {
+      for (let x = 0; x < colorStubs.length; x++) {
+        const stub = colorStubs[x];
+        for (let y = 0; y < stub.length; y++) {
+          if (newStubs[y] == null) {
+            const newStub: Array<string> = [];
+            newStubs[y] = newStub;
+          }
+          const color = stub[y];
+          newStubs[y][x] = color;
+        }
+      }
+    }
+    return newStubs;
+  }
 
-  const navigateToToday = () => {
-    const today = new Date();
-    setCurrentDateViewStr(date.format(today, 'YYYY/MM/DD'));
-    setTaskLists(getTaskLists(today, showAllDays));
+  const colorStubs: Array<Array<string>> = [
+    [
+      "#951F27",
+      "#EF5C5A",
+      "#FFA7A5",
+      "#FFEEEE"
+    ],
+    [
+      "#E95E00",
+      "#FFA427",
+      "#FFDAA4",
+      "#FFF5EA"
+    ],
+    [
+      "#998A25",
+      "#E0D100",
+      "#F4E770",
+      "#FFFFF9"
+    ],
+    [
+      "#005E01",
+      "#40BE4B",
+      "#BAF299",
+      "#F4FFF0"
+    ],
+    [
+      "#05327F",
+      "#2776FF",
+      "#95CDFF",
+      "#EFF8FD"
+    ],
+    [
+      "#522778",
+      "#9E57FF",
+      "#D1AAFF",
+      "#FBEEFF"
+    ],
+  ];
+
+  let orderedStubs = getStubs();
+
+  const [selectedRow, setSelectedRow] = React.useState<number | null>(null)
+  const [selectedColumn, setSelectedColumn] = React.useState<number | null>(null)
+
+  let getGridTemplateColumns = (): string => {
+    return orderedStubs[0].map((_, index) => (index == selectedColumn) ? '4fr' : '1fr').join(' ');
+  }
+
+  let getGridTemplateRows = (): string => {
+    return orderedStubs.map((_, index) => (index == selectedRow) ? '4fr' : '1fr').join(' ');
+  }
+
+  let setSelectedRowAndColumn = (x: number | null, y: number | null) => () => {
+    if (selectedColumn == x && selectedRow == y) {
+      setSelectedColumn(null);
+      setSelectedRow(null);
+      return;
+    }
+    setSelectedColumn(x);
+    setSelectedRow(y);
   }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      flexGrow: 1
+    }}>
       <AppBar position="sticky">
         <Toolbar>
           <IconButton
@@ -210,57 +168,36 @@ export default function RecipeReviewCard() {
           >
             <MenuIcon />
           </IconButton>
-          <TaskAltIcon sx={{ marginRight: 3 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' } }}>
-            Quest Log At Home
-          </Typography>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: { xs: 'flex', sm: 'none' } }}>
-            QLAH
+          <PaletteIcon sx={{ marginRight: 3 }} />
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: 'flex' }}>
+            Palette Picker
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={moveToPreviousDay}
-              color="inherit"
-            >
-              <NavigateBeforeIcon />
-            </IconButton>
             <IconButton
               size="large"
               edge="start"
               color="inherit"
               aria-label="today"
-              onClick={navigateToToday}
+              onClick={console.log}
             >
-              <CalendarMonthIcon />
+              <AddIcon />
             </IconButton>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                display: { xs: 'none', sm: 'flex' },
-                flexGrow: 1,
-              }}>
-              {currentDateViewStr}
-            </Typography>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                display: { xs: 'flex', sm: 'none' },
-                flexGrow: 1,
-              }}>
-              {currentDateViewStr.slice(5)}
-            </Typography>
             <IconButton
               size="large"
               aria-label="account of current user"
               aria-controls="menu-appbar"
               aria-haspopup="true"
-              onClick={moveToNextDay}
+              onClick={console.log}
+              color="inherit"
+            >
+              <RemoveIcon />
+            </IconButton>
+            <IconButton
+              size="large"
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={console.log}
               color="inherit"
             >
               <NavigateNextIcon />
@@ -268,22 +205,36 @@ export default function RecipeReviewCard() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Box sx={{ marginTop: 3, marginBottom: 3 }}>
-        <Grid
-          direction="column"
-          container
-          justifyContent="center"
-          alignItems="center"
-          spacing={3}>
-          {taskLists.map((taskList: CardInputs) =>
-            <Grid
-              key={`${currentDateViewStr}.${taskList.title}`}
-              item
-              xs={4}>
-              <CleaningCard {...taskList} />
-            </Grid>
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flexGrow: 1
+      }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: getGridTemplateColumns(),
+            gridTemplateRows: getGridTemplateRows(),
+            height: '100%'
+          }}>
+          {orderedStubs.map((stub, y) =>
+            stub.map((color, x) =>
+              <Grid
+                container
+                justifyContent="center"
+                alignItems="center"
+                spacing={0}
+                onClick={setSelectedRowAndColumn(x, y)}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexGrow: 1,
+                  backgroundColor: color
+                }}>
+              </Grid>
+            )
           )}
-        </Grid>
+        </Box>
       </Box>
       <SwipeableDrawer
         anchor="left"
@@ -294,8 +245,6 @@ export default function RecipeReviewCard() {
         <Box
           sx={{ width: 300 }}
           role="presentation"
-          onClick={() => setOpen(false)}
-          onKeyDown={() => setOpen(false)}
         >
           <Box sx={{ margin: 2 }}>
             <Typography variant="h4" component="h1">
@@ -307,24 +256,56 @@ export default function RecipeReviewCard() {
               secondaryAction={
                 <Checkbox
                   edge="end"
-                  onChange={handleToggleShowAllDays}
-                  checked={showAllDays}
-                  inputProps={{ 'aria-labelledby': 'showAllDays' }}
+                  onChange={handleToggleDirection}
+                  checked={isHorizontal}
+                  inputProps={{ 'aria-labelledby': 'toggleDirection' }}
                 />
               }
             >
-              <ListItemButton role={undefined} onClick={handleToggleShowAllDays} dense>
-                <ListItemText id={'showAllDays'} primary={'Show all weekdays'} />
+              <ListItemButton role={undefined} onClick={handleToggleDirection} dense>
+                <ListItemText id={'toggleDirection'} primary={'Show colors horizontally'} />
               </ListItemButton>
             </ListItem>
-            <ListItem>
-              <ListItemButton role={'button'} onClick={navigateToToday} dense>
-                <ListItemText id={'navigateToToday'} primary={'Navigate to today'} />
-              </ListItemButton>
+            <ListItem
+              secondaryAction={
+                <IconButton edge="end" aria-label="update stub number" onClick={handleToggleEditStubNumber}>
+                  {!isEditingStubNumber &&
+                    <EditIcon />
+                  }
+                  {isEditingStubNumber &&
+                    <SaveIcon />
+                  }
+                </IconButton>
+              }>
+              {!isEditingStubNumber &&
+                <ListItemButton role={undefined} onClick={handleToggleEditStubNumber} dense>
+                  <ListItemText primary={'Update color stub count'} />
+                </ListItemButton>
+              }
+              {isEditingStubNumber &&
+                <TextField
+                  // error={triedToAdd && !newItemTextIsValid}
+                  // helperText={(triedToAdd && !newItemTextIsValid) ? "*This field is required and cannot be any previous tasks" : ""}
+                  fullWidth
+                  type="number"
+                  label="Set color stub count (1-10)"
+                  variant="standard"
+                  InputProps={{
+                    inputProps: {
+                      pattern: "[1-9]|10",
+                      min: 1,
+                      max: 10,
+                    }
+                  }}
+                  onChange={onUpdateStubNumber}
+                  // onKeyDown={handleKeyDown}
+                  value={nextStubNumber}
+                />
+              }
             </ListItem>
           </List>
         </Box>
       </SwipeableDrawer>
-    </Box>
+    </Box >
   );
 }
