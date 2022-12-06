@@ -1,20 +1,12 @@
-import * as React from 'react';
+import React from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
-import CloseIcon from '@mui/icons-material/Close';
+import ColorSwatch from './ColorSwatch';
 import HueSlider from './HueSlider';
-import SaturationPicker from './SaturationPicker';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import EditIcon from '@mui/icons-material/Edit';
-import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -22,14 +14,12 @@ import ListItemText from '@mui/material/ListItemText';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import MenuIcon from '@mui/icons-material/Menu';
+import PaletteColor, { PaletteColorDisplayType } from './PaletteColor';
 import PaletteIcon from '@mui/icons-material/Palette';
 import RemoveIcon from '@mui/icons-material/Remove';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SaveIcon from '@mui/icons-material/Save';
-import { ChromePicker, ColorResult, HuePicker } from 'react-color';
-import Saturation from 'react-color/lib/components/common/Saturation';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import tinycolor, { ColorFormats } from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -147,40 +137,36 @@ export default function RecipeReviewCard() {
   const [orderedStubs, setOrderedStubs] = React.useState(getStubs(isHorizontal));
 
 
-  let handleColorChange = (x: number, y: number) => (color: tinycolor.Instance) => {
+  let handleColorChange = (x: number, y: number) => (color: PaletteColor) => {
     let newStubs = stubs.map((stub) => [...stub]);
     if (isHueLocked || isSVLocked) {
-      const newHsv = color.toHsv();
       newStubs = newStubs.map((stub, x2): Array<string> => {
         return stub.map((hex, y2): string => {
-          const matchesHorizontal = y == y2;
-          const matchesVertical = x == x2;
-          const matchesOppositeHorizontal = y == x2;
-          const matchesOppositeVertical = x == y2;
+          const matchesHorizontal = y === y2;
+          const matchesVertical = x === x2;
+          const matchesOppositeHorizontal = y === x2;
+          const matchesOppositeVertical = x === y2;
           const lockHue = isHueLocked && ((!isHorizontal && matchesVertical) || (isHorizontal && matchesOppositeHorizontal));
           const lockSV = isSVLocked && ((!isHorizontal && matchesHorizontal) || (isHorizontal && matchesOppositeVertical));
           if (!lockHue && !lockSV) return hex;
-          const tinyColorHsv = tinycolor(hex).toHsv();
-          const newTinyColor = tinycolor({
-            h: (lockHue) ? newHsv.h : tinyColorHsv.h,
-            s: (lockSV) ? newHsv.s : tinyColorHsv.s,
-            v: (lockSV) ? newHsv.v : tinyColorHsv.v,
-          });
-          return `#${newTinyColor.toHex()}`;
+          let newColor = PaletteColor.build(color.displayAs, hex);
+          if (lockHue) {
+            newColor = newColor.buildNewFromHue(color);
+          }
+          if (lockSV) {
+            newColor = newColor.buildNewFromSaturationAndValue(color);
+          }
+          return newColor.hex;
         });
       });
     }
     if (isHorizontal) {
-      newStubs[y][x] = `#${color.toHex()}`;
+      newStubs[y][x] = color.hex;
     } else {
-      newStubs[x][y] = `#${color.toHex()}`;
+      newStubs[x][y] = color.hex;
     }
-    updateAllStubs(newStubs, isHorizontal, false, copyCoords?.x! == x && copyCoords?.y! == y);
+    updateAllStubs(newStubs, isHorizontal, false, copyCoords?.x! === x && copyCoords?.y! === y);
   };
-
-  let handleColorPickerClick = (event: React.MouseEvent) => {
-    event.stopPropagation();
-  }
 
   const onUpdateStubNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('e.validity', e.target.validity.valid);
@@ -260,14 +246,14 @@ export default function RecipeReviewCard() {
 
   const paste = (x: number, y: number) => () => {
     if (copyCoords?.x == null || copyCoords?.y == null) return;
-    const tinyColor = tinycolor(isHorizontal ? stubs[copyCoords?.y!][copyCoords?.x!] : stubs[copyCoords?.x!][copyCoords?.y!])
-    handleColorChange(x, y)(tinyColor);
-    setGlobalColor(tinyColor);
+    const color = PaletteColor.build(isBrightnessMode ? PaletteColorDisplayType.Brightness : PaletteColorDisplayType.Hex, isHorizontal ? stubs[copyCoords?.y!][copyCoords?.x!] : stubs[copyCoords?.x!][copyCoords?.y!])
+    handleColorChange(x, y)(color);
+    setGlobalColor(color.tinycolor);
   }
 
 
   const [selectedCoords, setSelectedCoords] = React.useState<coords | null>(null)
-  const updateSelectedCoords = (selected: coords | null = null) => {
+  const updateSelectedCoords = (selected: coords | null = null) => () => {
     setSelectedCoords(selected);
     if (selected != null) {
       let tinyColor: tinycolor.Instance | null = null;
@@ -281,36 +267,19 @@ export default function RecipeReviewCard() {
   }
 
   let getGridTemplateColumns = (): string => {
-    return orderedStubs[0].map((_, index) => (index == selectedCoords?.x) ? '4fr' : '1fr').join(' ');
+    return orderedStubs[0].map((_, index) => (index === selectedCoords?.x) ? '4fr' : '1fr').join(' ');
   }
 
   let getGridTemplateRows = (): string => {
-    return orderedStubs.map((_, index) => (index == selectedCoords?.y) ? '4fr' : '1fr').join(' ');
+    return orderedStubs.map((_, index) => (index === selectedCoords?.y) ? '4fr' : '1fr').join(' ');
   }
-
-  let displayColorPicker = (x: number, y: number) => selectedCoords?.x == x && selectedCoords?.y == y;
 
   const [globalColor, setGlobalColor] = React.useState<tinycolor.Instance>(tinycolor('#0000FF'));
   const updateGlobalColor = (tinyColor: tinycolor.Instance) => {
     if (selectedCoords != null) {
-      handleColorChange(selectedCoords?.x!, selectedCoords?.y!)(tinyColor);
+      handleColorChange(selectedCoords?.x!, selectedCoords?.y!)(PaletteColor.build(isBrightnessMode ? PaletteColorDisplayType.Brightness : PaletteColorDisplayType.Hex, tinyColor));
     }
     setGlobalColor(tinyColor);
-  }
-
-  const getBrightnessColor = (hex: string) => {
-    const tinyColor = tinycolor(hex);
-    const tinyColorRGB = tinyColor.toRgb();
-    const brightness = (Math.sqrt(
-      tinyColorRGB.r * tinyColorRGB.r * .241 +
-      tinyColorRGB.g * tinyColorRGB.g * .691 +
-      tinyColorRGB.b * tinyColorRGB.b * .068)).toFixed(0);
-    const brightColor = tinycolor({
-      r: brightness,
-      g: brightness,
-      b: brightness
-    })
-    return `#${brightColor.toHex()}`;
   }
 
   return (
@@ -387,61 +356,17 @@ export default function RecipeReviewCard() {
           }}>
           {orderedStubs.map((stub, y) =>
             stub.map((color, x) =>
-              <Grid
-                container
-                justifyContent="center"
-                alignItems="center"
-                spacing={0}
+              <ColorSwatch
                 key={`${x},${y}`}
-                onClick={() => updateSelectedCoords({ x, y })}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flexGrow: 1,
-                  backgroundColor: isBrightnessMode ? getBrightnessColor(color) : color,
-                  border: (x == copyCoords?.x && y == copyCoords.y) ? '2px dashed' : 'none',
-                  borderRadius: '5px'
-                }}>
-                {displayColorPicker(x, y) ?
-                  <Box
-                    sx={{ backgroundColor: '#FFFFFF', borderRadius: '5px', width: '80%', height: '80%', minHeight: '300px', minWidth: '200px', display: 'flex', flexDirection: 'column' }}>
-                    <List disablePadding>
-                      <ListItem dense disablePadding>
-                        <IconButton size="small" onClick={(event) => {
-                          event.stopPropagation();
-                          updateSelectedCoords();
-                        }}>
-                          <CloseIcon />
-                        </IconButton>
-                      </ListItem>
-                    </List>
-                    <Box sx={{ flexGrow: 1, minHeight: '150px' }}>
-                      <SaturationPicker tinyColor={globalColor} onChange={handleColorChange(x, y)} />
-                    </Box>
-                    <List disablePadding>
-                      <ListItem disablePadding disableGutters dense sx={{ justifyContent: "center" }}>
-                        <IconButton size="small" onClick={copy(x, y)}>
-                          <ContentCopyIcon />
-                        </IconButton>
-                        <IconButton size="small" onClick={paste(x, y)}>
-                          <ContentPasteIcon />
-                        </IconButton>
-                        <IconButton size="small">
-                          <KeyboardArrowUpIcon />
-                        </IconButton>
-                        <IconButton size="small">
-                          <KeyboardArrowDownIcon />
-                        </IconButton>
-                        <IconButton size="small">
-                          <KeyboardArrowLeftIcon />
-                        </IconButton>
-                        <IconButton size="small">
-                          <KeyboardArrowRightIcon />
-                        </IconButton>
-                      </ListItem>
-                    </List>
-                  </Box> : null}
-              </Grid>
+                color={PaletteColor.build(isBrightnessMode ? PaletteColorDisplayType.Brightness : PaletteColorDisplayType.Hex, color)}
+                isCopied={copyCoords?.x === x && copyCoords?.y === y}
+                isSelected={selectedCoords?.x === x && selectedCoords?.y === y}
+                onChange={handleColorChange(x, y)}
+                onCopy={copy(x, y)}
+                onDeselect={updateSelectedCoords()}
+                onPaste={paste(x, y)}
+                onSelect={updateSelectedCoords({ x, y })}
+              />
             )
           )}
         </Box>
