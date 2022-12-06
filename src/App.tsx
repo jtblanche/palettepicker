@@ -48,7 +48,7 @@ export default function RecipeReviewCard() {
 
   const [isHueLocked, setIsHueLocked] = React.useState((localStorage.getItem('isHueLocked') ?? 'false') === 'true')
 
-  const [isSVLocked, setIsSVLocked] = React.useState((localStorage.getItem('isSvLocked') ?? 'false') === 'true')
+  const [isSVLocked, setIsSVLocked] = React.useState((localStorage.getItem('isSVLocked') ?? 'false') === 'true')
 
   const [stubNumber, setStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '4'));
 
