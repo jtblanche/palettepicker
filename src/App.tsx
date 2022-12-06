@@ -46,6 +46,8 @@ export default function RecipeReviewCard() {
 
   const [isHorizontal, setIsHorizontal] = React.useState((localStorage.getItem('isHorizontal') ?? 'false') === 'true')
 
+  const [isBrightnessMode, setIsBrightnessMode] = React.useState((localStorage.getItem('isBrightnessMode') ?? 'false') === 'true')
+
   const [isHueLocked, setIsHueLocked] = React.useState((localStorage.getItem('isHueLocked') ?? 'false') === 'true')
 
   const [isSVLocked, setIsSVLocked] = React.useState((localStorage.getItem('isSVLocked') ?? 'false') === 'true')
@@ -153,8 +155,10 @@ export default function RecipeReviewCard() {
         return stub.map((hex, y2): string => {
           const matchesHorizontal = y == y2;
           const matchesVertical = x == x2;
-          const lockHue = isHueLocked && matchesVertical;
-          const lockSV = isSVLocked && matchesHorizontal;
+          const matchesOppositeHorizontal = y == x2;
+          const matchesOppositeVertical = x == y2;
+          const lockHue = isHueLocked && ((!isHorizontal && matchesVertical) || (isHorizontal && matchesOppositeHorizontal));
+          const lockSV = isSVLocked && ((!isHorizontal && matchesHorizontal) || (isHorizontal && matchesOppositeVertical));
           if (!lockHue && !lockSV) return hex;
           const tinyColorHsv = tinycolor(hex).toHsv();
           const newTinyColor = tinycolor({
@@ -201,6 +205,12 @@ export default function RecipeReviewCard() {
     const newIsSVLocked = !isSVLocked;
     setIsSVLocked(newIsSVLocked);
     localStorage.setItem('isSVLocked', newIsSVLocked.toString())
+  }
+
+  const handleToggleIsBrightnessMode = () => {
+    const newIsBrightnessMode = !isBrightnessMode;
+    setIsBrightnessMode(newIsBrightnessMode);
+    localStorage.setItem('isBrightnessMode', newIsBrightnessMode.toString())
   }
 
   const handleToggleEditStubNumber = () => {
@@ -288,6 +298,21 @@ export default function RecipeReviewCard() {
     setGlobalColor(tinyColor);
   }
 
+  const getBrightnessColor = (hex: string) => {
+    const tinyColor = tinycolor(hex);
+    const tinyColorRGB = tinyColor.toRgb();
+    const brightness = (Math.sqrt(
+      tinyColorRGB.r * tinyColorRGB.r * .241 +
+      tinyColorRGB.g * tinyColorRGB.g * .691 +
+      tinyColorRGB.b * tinyColorRGB.b * .068)).toFixed(0);
+    const brightColor = tinycolor({
+      r: brightness,
+      g: brightness,
+      b: brightness
+    })
+    return `#${brightColor.toHex()}`;
+  }
+
   return (
     <Box sx={{
       display: 'flex',
@@ -371,15 +396,15 @@ export default function RecipeReviewCard() {
                 onClick={() => updateSelectedCoords({ x, y })}
                 sx={{
                   display: 'flex',
-                  flexDirection: 'row',
+                  flexDirection: 'column',
                   flexGrow: 1,
-                  backgroundColor: color,
+                  backgroundColor: isBrightnessMode ? getBrightnessColor(color) : color,
                   border: (x == copyCoords?.x && y == copyCoords.y) ? '2px dashed' : 'none',
                   borderRadius: '5px'
                 }}>
                 {displayColorPicker(x, y) ?
                   <Box
-                    sx={{ backgroundColor: '#FFFFFF', borderRadius: '5px', width: '90%', height: '90%', minHeight: '300px', minWidth: '200px', display: 'flex', flexDirection: 'column' }}>
+                    sx={{ backgroundColor: '#FFFFFF', borderRadius: '5px', width: '80%', height: '80%', minHeight: '300px', minWidth: '200px', display: 'flex', flexDirection: 'column' }}>
                     <List disablePadding>
                       <ListItem dense disablePadding>
                         <IconButton size="small" onClick={(event) => {
@@ -449,6 +474,20 @@ export default function RecipeReviewCard() {
             >
               <ListItemButton role={undefined} onClick={handleToggleDirection} dense>
                 <ListItemText id={'toggleDirection'} primary={'Show colors horizontally'} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem
+              secondaryAction={
+                <Checkbox
+                  edge="end"
+                  onChange={handleToggleIsBrightnessMode}
+                  checked={isBrightnessMode}
+                  inputProps={{ 'aria-labelledby': 'toggleBrightnessMode' }}
+                />
+              }
+            >
+              <ListItemButton role={undefined} onClick={handleToggleIsBrightnessMode} dense>
+                <ListItemText id={'toggleBrightnessMode'} primary={'Show estimated brightness'} />
               </ListItemButton>
             </ListItem>
             <ListItem secondaryAction={
