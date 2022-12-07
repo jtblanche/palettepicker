@@ -24,6 +24,8 @@ import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 
+import './App.scss';
+
 interface coords {
   x: number;
   y: number;

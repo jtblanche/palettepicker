@@ -16,6 +16,7 @@
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
     "date-and-time": "^2.4.1",
+    "node-sass": "^7.0.3",
     "react": "^18.2.0",
     "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
@@ -26,10 +27,12 @@
   },
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "generate-scss-types": "typed-scss-modules src --exportType default",
+    "watch-scss-types": "typed-scss-modules src --watch --exportType default",
+    "deploy": "npm run generate-scss-types && gh-pages -d build",
+    "start": "concurrently \"npm run watch-scss-types\" \"react-scripts start\"",
+    "build": "npm run generate-scss-types && react-scripts build",
+    "test": "npm run generate-scss-types && react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -51,8 +54,12 @@
     ]
   },
   "devDependencies": {
+    "@types/node-sass": "^4.11.3",
     "@types/react-color": "^3.0.6",
     "@types/tinycolor2": "^1.4.3",
-    "gh-pages": "^4.0.0"
+    "concurrently": "^7.6.0",
+    "gh-pages": "^4.0.0",
+    "typed-scss-modules": "^7.0.1",
+    "typescript-plugin-css-modules": "^4.1.1"
   }
 }
