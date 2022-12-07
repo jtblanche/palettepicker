@@ -17,13 +17,14 @@ interface ColorSwatchProps {
 }
 
 export default function ColorSwatch({ color, isCopied, isSelected, onChange, onCopy, onDeselect, onPaste, onSelect }: ColorSwatchProps) {
+    const copyClass = color.isDark ? styles.copyBorderLight : styles.copyBorder;
+
     return (
-        <Grid className={styles.colorSwatch}
+        <Grid className={`${styles.colorSwatch} ${isCopied ? copyClass : ''}`}
             container
             onClick={onSelect}
             sx={{
                 backgroundColor: color.backgroundColor,
-                border: (isCopied) ? '2px dashed' : 'none',
             }}>
             {isSelected ? <ColorSwatchPicker
                 color={color}

@@ -8,3 +8,23 @@
     height: 80%;
     min-height: 300px;
 }
+
+.picker {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    ul {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+}
+
+.stretch {
+    flex-grow: 1;
+}
+
+.center {
+    justify-content: center;
+}

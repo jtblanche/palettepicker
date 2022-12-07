@@ -22,6 +22,7 @@ export default class PaletteColor {
     private _hsvString: string | null;
     private _hex: string | null;
     private _brightnessHex: string | null;
+    private _isDark: boolean | null;
     private _backgroundColor: string | null = null;
     private _outputString: string | null = null;
 
@@ -42,7 +43,8 @@ export default class PaletteColor {
             this._hsv,
             this._hsvString,
             this._hex,
-            this._brightnessHex
+            this._brightnessHex,
+            this._isDark
         )
     }
 
@@ -78,7 +80,8 @@ export default class PaletteColor {
         hsv: ColorFormats.HSV | null,
         hsvString: string | null,
         hex: string | null,
-        brightnessHex: string | null
+        brightnessHex: string | null,
+        isDark: boolean | null
     )
     private constructor(
         displayAs: PaletteColorDisplayType,
@@ -92,7 +95,8 @@ export default class PaletteColor {
         hsv?: ColorFormats.HSV | null,
         hsvString?: string | null,
         hex?: string | null,
-        brightnessHex?: string | null
+        brightnessHex?: string | null,
+        isDark?: boolean | null
     ) {
         this.tinycolor = color;
         this.displayAs = displayAs;
@@ -106,6 +110,7 @@ export default class PaletteColor {
         this._hsvString = hsvString ?? null;
         this._hex = hex ?? null;
         this._brightnessHex = brightnessHex ?? null;
+        this._isDark = isDark ?? null;
     }
 
     private toRgb(): ColorFormats.RGB {
@@ -205,6 +210,15 @@ export default class PaletteColor {
 
     public get brightnessHex(): string {
         return this._brightnessHex ?? this.toBrightnessHex();
+    }
+
+    private getIsDark(): boolean {
+        const tinyColor = new tinycolor(this.brightnessHex);
+        return tinyColor.toRgb().r < 130;
+    }
+
+    public get isDark(): boolean {
+        return this._isDark ?? this.getIsDark();
     }
 
     private toBackgroundColor(): string {

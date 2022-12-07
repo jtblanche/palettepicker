@@ -1,5 +1,8 @@
 export type Styles = {
+  'center': string;
   'colorSwatchPicker': string;
+  'picker': string;
+  'stretch': string;
 };
 
 export type ClassNames = keyof Styles;

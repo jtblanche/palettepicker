@@ -31,7 +31,7 @@ export default function ColorSwatchPicker({ color, onChange, onCopy, onDeselect,
 
     return (
         <Box className={styles.colorSwatchPicker}>
-            <List disablePadding>
+            <List className={styles.picker} disablePadding>
                 <ListItem dense disablePadding>
                     <IconButton size="small" onClick={(event) => {
                         event.stopPropagation();
@@ -40,12 +40,10 @@ export default function ColorSwatchPicker({ color, onChange, onCopy, onDeselect,
                         <CloseIcon />
                     </IconButton>
                 </ListItem>
-            </List>
-            <Box sx={{ flexGrow: 1, minHeight: '150px' }}>
-                <SaturationPicker color={color} onChange={handleColorChange} />
-            </Box>
-            <List disablePadding>
-                <ListItem disablePadding disableGutters dense sx={{ justifyContent: "center" }}>
+                <ListItem className={styles.stretch} dense disablePadding disableGutters>
+                    <SaturationPicker color={color} onChange={handleColorChange} />
+                </ListItem>
+                <ListItem disablePadding disableGutters dense className={styles.center}>
                     <IconButton size="small" onClick={onCopy}>
                         <ContentCopyIcon />
                     </IconButton>
