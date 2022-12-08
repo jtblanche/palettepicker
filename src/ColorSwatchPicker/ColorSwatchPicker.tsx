@@ -25,6 +25,8 @@ interface ColorSwatchPickerProps {
 }
 
 export default function ColorSwatchPicker({ color, onChange, onCopy, onPaste, onDeselect }: ColorSwatchPickerProps) {
+    console.log('swatch picker changed');
+
     const handleColorChange = (newColor: Color) => {
         if (newColor.equals(color)) return;
         onChange(newColor);

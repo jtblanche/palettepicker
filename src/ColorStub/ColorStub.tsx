@@ -5,6 +5,7 @@ import Color from '../Color';
 import Stub from '../Stub';
 
 import styles from './ColorStub.module.scss';
+import Palette from '../Palette';
 
 
 interface ColorStubProps {
@@ -26,8 +27,9 @@ export default function ColorStub({
     onSwatchDeselect,
     onSwatchSelect
 }: ColorStubProps) {
+    const thisIsNull = (stub.swatches[Palette.copiedLocation?.swatchIndex ?? -1]?.isCopied ?? false) ? console.log('stub copied') : null;
+
     const handleSwatchCopy = (index: number) => () => {
-        stub.updateSwatchIsCopied(index, true);
         onSwatchCopy(index);
     }
 

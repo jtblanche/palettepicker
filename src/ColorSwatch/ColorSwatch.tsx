@@ -25,10 +25,12 @@ export default function ColorSwatch({
     onDeselect,
     onSelect
 }: ColorSwatchProps) {
-    const copyClass = swatch.color.isDark ? styles.copyBorderLight : styles.copyBorder;
+    const thisIsNull = swatch.isCopied ? console.log('swatch copied') : null;
+
+    const copyClass = () => swatch.color.isDark ? styles.copyBorderLight : styles.copyBorder;
 
     return (
-        <Box className={`${className ?? ''} ${styles.colorSwatch} ${swatch.isCopied ? copyClass : ''}`.trim()}
+        <Box className={`${className ?? ''} ${styles.colorSwatch} ${swatch.isCopied ? copyClass() : ''}`.trim()}
             onClick={onSelect}
             sx={{
                 backgroundColor: swatch.color.backgroundColor,

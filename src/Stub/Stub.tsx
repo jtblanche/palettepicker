@@ -23,7 +23,7 @@ export default class Stub {
     // index = number index of selected or shade to update or null to make all false
     private buildNewFromIsSelected(isSelected: boolean = false, index: number | null = null): Stub {
         if (this.isSelected == isSelected && this.selectedIndex == index) return this;
-        let newSwatches = this.swatches;
+        let newSwatches = [...this.swatches];
         if (isSelected) {
             newSwatches = newSwatches.map(
                 (swatch, i) => swatch.buildNewFromIsSelected(index == i)
@@ -37,7 +37,8 @@ export default class Stub {
     }
 
     public buildNewFromDisplayAs(displayAs: ColorDisplayType): Stub {
-        const newSwatches = this.swatches.map((swatch) => swatch.buildNewFromDisplayAs(displayAs));
+        let newSwatches = [...this.swatches];
+        newSwatches = newSwatches.map((swatch) => swatch.buildNewFromDisplayAs(displayAs));
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
 
@@ -63,8 +64,10 @@ export default class Stub {
         return this.buildNewFromIsSelected(true, index);
     }
 
-    public updateSwatchIsCopied(index: number, isCopied: boolean) {
-        this.swatches[index] = this.swatches[index].buildNewFromIsCopied(isCopied);
+    public buildNewFromIsCopied(index: number, isCopied: boolean): Stub {
+        const newSwatches = [...this.swatches];
+        newSwatches[index] = newSwatches[index].buildNewFromIsCopied(isCopied);
+        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
 
     public buildNewFromSwatchColor(index: number, color: Color) {
@@ -75,8 +78,9 @@ export default class Stub {
 
     public buildNewFromHueAndSV(index: number, color: Color): Stub {
         if (!this.isHueLocked) return this.buildNewFromSwatchColor(index, color);
+        let newSwatches = [...this.swatches];
 
-        const newSwatches = this.swatches.map((swatch, i) => (index == i)
+        newSwatches = newSwatches.map((swatch, i) => (index == i)
             ? swatch.buildNewFromColor(color)
             : swatch.buildNewFromColor(swatch.color.buildNewFromHue(color)));
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
@@ -85,7 +89,8 @@ export default class Stub {
     public buildNewFromHue(index: number, color: Color): Stub {
         if (!this.isHueLocked) return this.buildNewFromSwatchColor(index, this.swatches[index].color.buildNewFromHue(color));
 
-        const newSwatches = this.swatches.map((swatch) =>
+        let newSwatches = [...this.swatches];
+        newSwatches = newSwatches.map((swatch) =>
             swatch.buildNewFromColor(swatch.color.buildNewFromHue(color)));
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
@@ -105,7 +110,7 @@ export default class Stub {
         isSelected: boolean = false,
         selectedIndex: number | null = null,
     ) {
-        this.swatches = swatches;
+        this.swatches = [...swatches];
         this.displayAs = displayAs;
         this.isHorizontal = isHorizontal;
         this.isHueLocked = isHueLocked;

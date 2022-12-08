@@ -10,6 +10,7 @@ import styles from './ColorPalette.module.scss';
 interface ColorPaletteProps {
     className?: string | null,
     palette: Palette,
+    onSwatchCopy: ((location: ColorLocation) => void),
     onSwatchDeselect: () => void,
     onSwatchSelect: (location: ColorLocation) => void,
     onUpdateSelectedColorSV: (color: Color) => void,
@@ -23,13 +24,11 @@ export default function ColorPalette({
     onSwatchSelect,
     onUpdateSelectedColorSV,
     onUpdateSelectedColor,
+    onSwatchCopy,
 }: ColorPaletteProps) {
+    const thisIsNull = (palette.stubs[Palette.copiedLocation?.stubIndex ?? -1]?.swatches[Palette.copiedLocation?.swatchIndex ?? -1]?.isCopied ?? false) ? console.log('palette copied') : null;
     const handleSwatchCopy = (stubIndex: number) => (swatchIndex: number) => {
-        palette.saveToClipboard({ stubIndex, swatchIndex });
-    }
-
-    const handleSwatchDeselect = () => {
-        onSwatchDeselect();
+        onSwatchCopy({ stubIndex, swatchIndex });
     }
 
     const handleSwatchSelect = (stubIndex: number) => (swatchIndex: number) => {
@@ -52,7 +51,7 @@ export default function ColorPalette({
                     onUpdateSelectedColorSV={onUpdateSelectedColorSV}
                     onUpdateSelectedColor={onUpdateSelectedColor}
                     onSwatchCopy={handleSwatchCopy(index)}
-                    onSwatchDeselect={handleSwatchDeselect}
+                    onSwatchDeselect={onSwatchDeselect}
                     onSwatchSelect={handleSwatchSelect(index)}
                 />
             ))}
