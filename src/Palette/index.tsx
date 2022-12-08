@@ -1,0 +1,1 @@
+export { type ColorLocation, ColorChangeType, default } from './Palette'

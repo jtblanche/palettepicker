@@ -1,6 +1,6 @@
 import tinycolor, { ColorFormats } from 'tinycolor2';
 
-export enum PaletteColorDisplayType {
+export enum ColorDisplayType {
     Hex,
     RGB,
     PRGB,
@@ -9,9 +9,9 @@ export enum PaletteColorDisplayType {
     Brightness,
 }
 
-export default class PaletteColor {
+export default class Color {
     readonly tinycolor: tinycolor.Instance;
-    readonly displayAs: PaletteColorDisplayType;
+    readonly displayAs: ColorDisplayType;
     private _rgb: ColorFormats.RGB | null;
     private _rgbString: string | null;
     private _prgb: ColorFormats.PRGB | null;
@@ -26,12 +26,12 @@ export default class PaletteColor {
     private _backgroundColor: string | null = null;
     private _outputString: string | null = null;
 
-    public static build(displayAs: PaletteColorDisplayType, colorInput: tinycolor.ColorInput): PaletteColor {
-        return new PaletteColor(displayAs, tinycolor(colorInput));
+    public static build(displayAs: ColorDisplayType, colorInput: tinycolor.ColorInput): Color {
+        return new Color(displayAs, tinycolor(colorInput));
     }
 
-    public buildNewFromDisplayType(displayAs: PaletteColorDisplayType): PaletteColor {
-        return new PaletteColor(
+    public buildNewFromDisplayType(displayAs: ColorDisplayType): Color {
+        return new Color(
             displayAs,
             this.tinycolor,
             this._rgb,
@@ -48,16 +48,16 @@ export default class PaletteColor {
         )
     }
 
-    public buildNewFromHue(updateTo: PaletteColor): PaletteColor {
-        return PaletteColor.build(this.displayAs, {
+    public buildNewFromHue(updateTo: Color): Color {
+        return Color.build(this.displayAs, {
             h: updateTo.hsv.h,
             s: this.hsv.s,
             v: this.hsv.v
         });
     }
 
-    public buildNewFromSaturationAndValue(updateTo: PaletteColor): PaletteColor {
-        return PaletteColor.build(this.displayAs, {
+    public buildNewFromSaturationAndValue(updateTo: Color): Color {
+        return Color.build(this.displayAs, {
             h: this.hsv.h,
             s: updateTo.hsv.s,
             v: updateTo.hsv.v
@@ -65,11 +65,11 @@ export default class PaletteColor {
     }
 
     private constructor(
-        displayAs: PaletteColorDisplayType,
+        displayAs: ColorDisplayType,
         color: tinycolor.Instance
     );
     private constructor(
-        displayAs: PaletteColorDisplayType,
+        displayAs: ColorDisplayType,
         color: tinycolor.Instance,
         rgb: ColorFormats.RGB | null,
         rgbString: string | null,
@@ -84,7 +84,7 @@ export default class PaletteColor {
         isDark: boolean | null
     )
     private constructor(
-        displayAs: PaletteColorDisplayType,
+        displayAs: ColorDisplayType,
         color: tinycolor.Instance,
         rgb?: ColorFormats.RGB | null,
         rgbString?: string | null,
@@ -223,7 +223,7 @@ export default class PaletteColor {
 
     private toBackgroundColor(): string {
         switch (this.displayAs) {
-            case PaletteColorDisplayType.Brightness:
+            case ColorDisplayType.Brightness:
                 this._backgroundColor = this.brightnessHex;
                 break;
             default:
@@ -238,16 +238,16 @@ export default class PaletteColor {
 
     private toOutputString(): string {
         switch (this.displayAs) {
-            case PaletteColorDisplayType.RGB:
+            case ColorDisplayType.RGB:
                 this._outputString = this.rgbString;
                 break;
-            case PaletteColorDisplayType.PRGB:
+            case ColorDisplayType.PRGB:
                 this._outputString = this.prgbString;
                 break;
-            case PaletteColorDisplayType.HSL:
+            case ColorDisplayType.HSL:
                 this._outputString = this.hslString;
                 break;
-            case PaletteColorDisplayType.HSV:
+            case ColorDisplayType.HSV:
                 this._outputString = this.hsvString;
                 break;
             default:
@@ -261,7 +261,7 @@ export default class PaletteColor {
         return this._outputString ?? this.toOutputString();
     }
 
-    public equals(other: PaletteColor): boolean {
+    public equals(other: Color): boolean {
         return this.hex === other.hex;
     }
 }

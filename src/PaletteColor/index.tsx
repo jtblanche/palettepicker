@@ -1,1 +1,0 @@
-export { PaletteColorDisplayType, default } from './PaletteColor'

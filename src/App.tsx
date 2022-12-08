@@ -3,7 +3,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Checkbox from '@mui/material/Checkbox';
-import ColorSwatch from './ColorSwatch';
+import ColorPalette from './ColorPalette';
 import HueSlider from './HueSlider';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
@@ -14,7 +14,8 @@ import ListItemText from '@mui/material/ListItemText';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import MenuIcon from '@mui/icons-material/Menu';
-import PaletteColor, { PaletteColorDisplayType } from './PaletteColor';
+import Color, { ColorDisplayType } from './Color';
+import Palette, { ColorLocation, ColorChangeType } from './Palette';
 import PaletteIcon from '@mui/icons-material/Palette';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SaveIcon from '@mui/icons-material/Save';
@@ -32,23 +33,7 @@ interface coords {
 }
 
 export default function RecipeReviewCard() {
-
-  const [open, setOpen] = React.useState(false)
-  const [isEditingStubNumber, setIsEditingStubNumber] = React.useState(false)
-
-  const [isHorizontal, setIsHorizontal] = React.useState((localStorage.getItem('isHorizontal') ?? 'false') === 'true')
-
-  const [isBrightnessMode, setIsBrightnessMode] = React.useState((localStorage.getItem('isBrightnessMode') ?? 'false') === 'true')
-
-  const [isHueLocked, setIsHueLocked] = React.useState((localStorage.getItem('isHueLocked') ?? 'false') === 'true')
-
-  const [isSVLocked, setIsSVLocked] = React.useState((localStorage.getItem('isSVLocked') ?? 'false') === 'true')
-
-  const [stubNumber, setStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '4'));
-
-  const [nextStubNumber, setNextStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '4'));
-
-  const [copyCoords, setCopyCoords] = React.useState<coords | null>(null)
+  const [open, setOpen] = React.useState(false);
 
   const defaultStubs: Array<Array<string>> = [
     [
@@ -89,86 +74,25 @@ export default function RecipeReviewCard() {
     ],
   ];
 
-  const [stubs, setStubs] = React.useState<Array<Array<string>>>(JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs);
+  const [palette, setPalette] = React.useState(Palette.build(
+    JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs,
+    (localStorage.getItem('isHorizontal') ?? 'false') === 'true',
+    (localStorage.getItem('isHueLocked') ?? 'false') === 'true',
+    (localStorage.getItem('isSVLocked') ?? 'false') === 'true',
+    ((localStorage.getItem('isBrightnessMode') ?? 'false') === 'true')
+      ? ColorDisplayType.Brightness
+      : ColorDisplayType.Hex
+  ));
 
-  const getStubs = (isHorizontal: boolean, stubbers: Array<Array<string>> | null = null): Array<Array<string>> => {
-    const newStubs: Array<Array<string>> = [];
-    const oldStubs = stubbers ?? stubs;
-    if (isHorizontal) {
-      for (let x = 0; x < oldStubs.length; x++) {
-        const newStub: Array<string> = [];
-        newStubs[x] = newStub;
-        const stub = oldStubs[x];
-        for (let y = 0; y < stub.length; y++) {
-          const color = stub[y];
-          newStubs[x][y] = color;
-        }
-      }
-    } else {
-      for (let x = 0; x < oldStubs.length; x++) {
-        const stub = oldStubs[x];
-        for (let y = 0; y < stub.length; y++) {
-          if (newStubs[y] == null) {
-            const newStub: Array<string> = [];
-            newStubs[y] = newStub;
-          }
-          const color = stub[y];
-          newStubs[y][x] = color;
-        }
-      }
-    }
-    return newStubs;
-  }
+  const [isEditingStubNumber, setIsEditingStubNumber] = React.useState(false)
+
+  const [stubNumber, setStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '4'));
+
+  const [nextStubNumber, setNextStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '4'));
 
   const saveStubs = (newStubs: Array<Array<string>>) => {
     localStorage.setItem('stubs', JSON.stringify(newStubs))
   }
-
-  const updateAllStubs = (stubs: Array<Array<string>>, isHorizontal: boolean, resetSelection: boolean = false, resetCopy: boolean = false) => {
-    setStubs(stubs);
-    saveStubs(stubs);
-    setOrderedStubs(getStubs(isHorizontal, stubs));
-    if (resetSelection) {
-      updateSelectedCoords();
-    }
-    if (resetCopy) {
-      setCopyCoords(null);
-    }
-  }
-
-  const [orderedStubs, setOrderedStubs] = React.useState(getStubs(isHorizontal));
-
-
-  let handleColorChange = (x: number, y: number) => (color: PaletteColor) => {
-    let newStubs = stubs.map((stub) => [...stub]);
-    if (isHueLocked || isSVLocked) {
-      newStubs = newStubs.map((stub, x2): Array<string> => {
-        return stub.map((hex, y2): string => {
-          const matchesHorizontal = y === y2;
-          const matchesVertical = x === x2;
-          const matchesOppositeHorizontal = y === x2;
-          const matchesOppositeVertical = x === y2;
-          const lockHue = isHueLocked && ((!isHorizontal && matchesVertical) || (isHorizontal && matchesOppositeHorizontal));
-          const lockSV = isSVLocked && ((!isHorizontal && matchesHorizontal) || (isHorizontal && matchesOppositeVertical));
-          if (!lockHue && !lockSV) return hex;
-          let newColor = PaletteColor.build(color.displayAs, hex);
-          if (lockHue) {
-            newColor = newColor.buildNewFromHue(color);
-          }
-          if (lockSV) {
-            newColor = newColor.buildNewFromSaturationAndValue(color);
-          }
-          return newColor.hex;
-        });
-      });
-    }
-    if (isHorizontal) {
-      newStubs[y][x] = color.hex;
-    } else {
-      newStubs[x][y] = color.hex;
-    }
-    updateAllStubs(newStubs, isHorizontal, false, copyCoords?.x! === x && copyCoords?.y! === y);
-  };
 
   const onUpdateStubNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('e.validity', e.target.validity.valid);
@@ -176,29 +100,40 @@ export default function RecipeReviewCard() {
   }
 
   const handleToggleDirection = () => {
-    const newIsHorizontal = !isHorizontal;
-    setIsHorizontal(newIsHorizontal);
-    localStorage.setItem('isHorizontal', newIsHorizontal.toString())
-    updateSelectedCoords();
-    setOrderedStubs(getStubs(newIsHorizontal));
+    const newIsHorizontal = !palette.isHorizontal;
+    localStorage.setItem('isHorizontal', newIsHorizontal.toString());
+    setPalette(palette.buildNewPaletteByIsHorizontal(newIsHorizontal));
   }
 
   const handleToggleHueLock = () => {
-    const newIsHueLocked = !isHueLocked;
-    setIsHueLocked(newIsHueLocked);
-    localStorage.setItem('isHueLocked', newIsHueLocked.toString())
+    const newIsHueLocked = !palette.isHueLocked;
+    localStorage.setItem('isHueLocked', newIsHueLocked.toString());
+    setPalette(palette.buildNewPaletteByIsHueLocked(newIsHueLocked));
   }
 
   const handleToggleSVLock = () => {
-    const newIsSVLocked = !isSVLocked;
-    setIsSVLocked(newIsSVLocked);
-    localStorage.setItem('isSVLocked', newIsSVLocked.toString())
+    const newIsSVLocked = !palette.isSVLocked;
+    localStorage.setItem('isSVLocked', newIsSVLocked.toString());
+    setPalette(palette.buildNewPaletteByIsSVLocked(newIsSVLocked));
   }
 
   const handleToggleIsBrightnessMode = () => {
-    const newIsBrightnessMode = !isBrightnessMode;
-    setIsBrightnessMode(newIsBrightnessMode);
-    localStorage.setItem('isBrightnessMode', newIsBrightnessMode.toString())
+    const newIsBrightnessMode = !(palette.displayAs == ColorDisplayType.Brightness);
+    localStorage.setItem('isBrightnessMode', newIsBrightnessMode.toString());
+    setPalette(palette.buildNewPaletteByDisplayAs(newIsBrightnessMode ? ColorDisplayType.Brightness : ColorDisplayType.RGB));
+  }
+
+  const handleColorSelection = (location: ColorLocation) => {
+    setPalette(palette.buildNewFromSelection(location));
+  }
+
+  const handleColorDeselection = () => {
+    setPalette(palette.buildNewFromDeselection());
+  }
+
+  const handleSelectedColorChange = (changeType: ColorChangeType) => (color: Color) => {
+    const newPalette = palette.buildNewFromColor(color, changeType);
+    localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
   }
 
   const handleToggleEditStubNumber = () => {
@@ -216,72 +151,30 @@ export default function RecipeReviewCard() {
   }
 
   const changeStubNumber = (stubNumber: number) => {
-    const newStubs = stubs.map((stub) => [
-      ...stub.filter((_, index) => index < stubNumber),
-      ...((stub.length < stubNumber) ? (Array(stubNumber - stub.length).fill(stub[stub.length - 1])) : [])
-    ]);
-    updateAllStubs(newStubs, isHorizontal, true, true);
+    // const newStubs = stubs.map((stub) => [
+    //   ...stub.filter((_, index) => index < stubNumber),
+    //   ...((stub.length < stubNumber) ? (Array(stubNumber - stub.length).fill(stub[stub.length - 1])) : [])
+    // ]);
+    // updateAllStubs(newStubs, isHorizontal, true, true);
   }
 
   const addStub = () => {
-    const selectedOrEnd: number = ((isHorizontal) ? selectedCoords?.y : selectedCoords?.x) ?? (stubs.length - 1);
-    const newStubs = [
-      ...stubs.filter((_, index) => index <= selectedOrEnd).map((stub) => [...stub]),
-      [...stubs[selectedOrEnd]],
-      ...stubs.splice(selectedOrEnd + 1).map((stub) => [...stub])
-    ]
-    updateAllStubs(newStubs, isHorizontal, false, true);
+    // const selectedOrEnd: number = ((isHorizontal) ? selectedCoords?.y : selectedCoords?.x) ?? (stubs.length - 1);
+    // const newStubs = [
+    //   ...stubs.filter((_, index) => index <= selectedOrEnd).map((stub) => [...stub]),
+    //   [...stubs[selectedOrEnd]],
+    //   ...stubs.splice(selectedOrEnd + 1).map((stub) => [...stub])
+    // ]
+    // updateAllStubs(newStubs, isHorizontal, false, true);
   }
 
   const removeStub = () => {
-    const selectedOrEnd: number = ((isHorizontal) ? selectedCoords?.y : selectedCoords?.x) ?? (stubs.length - 1);
-    const newStubs = [
-      ...stubs.filter((_, index) => index < selectedOrEnd).map((stub) => [...stub]),
-      ...stubs.splice(selectedOrEnd + 1).map((stub) => [...stub])
-    ]
-    updateAllStubs(newStubs, isHorizontal, true, true);
-  }
-
-  const copy = (x: number, y: number) => () => {
-    setCopyCoords({ x: x, y: y });
-  }
-
-  const paste = (x: number, y: number) => () => {
-    if (copyCoords?.x == null || copyCoords?.y == null) return;
-    const color = PaletteColor.build(isBrightnessMode ? PaletteColorDisplayType.Brightness : PaletteColorDisplayType.Hex, isHorizontal ? stubs[copyCoords?.y!][copyCoords?.x!] : stubs[copyCoords?.x!][copyCoords?.y!])
-    handleColorChange(x, y)(color);
-    setGlobalColor(color.tinycolor);
-  }
-
-
-  const [selectedCoords, setSelectedCoords] = React.useState<coords | null>(null)
-  const updateSelectedCoords = (selected: coords | null = null) => () => {
-    setSelectedCoords(selected);
-    if (selected != null) {
-      let tinyColor: tinycolor.Instance | null = null;
-      if (isHorizontal) {
-        tinyColor = tinycolor(stubs[selected?.y!][selected?.x!]);
-      } else {
-        tinyColor = tinycolor(stubs[selected?.x!][selected?.y!]);
-      }
-      setGlobalColor(tinyColor!);
-    }
-  }
-
-  let getGridTemplateColumns = (): string => {
-    return orderedStubs[0].map((_, index) => (index === selectedCoords?.x) ? '4fr' : '1fr').join(' ');
-  }
-
-  let getGridTemplateRows = (): string => {
-    return orderedStubs.map((_, index) => (index === selectedCoords?.y) ? '4fr' : '1fr').join(' ');
-  }
-
-  const [globalColor, setGlobalColor] = React.useState<tinycolor.Instance>(tinycolor('#0000FF'));
-  const updateGlobalColor = (tinyColor: tinycolor.Instance) => {
-    if (selectedCoords != null) {
-      handleColorChange(selectedCoords?.x!, selectedCoords?.y!)(PaletteColor.build(isBrightnessMode ? PaletteColorDisplayType.Brightness : PaletteColorDisplayType.Hex, tinyColor));
-    }
-    setGlobalColor(tinyColor);
+    // const selectedOrEnd: number = ((isHorizontal) ? selectedCoords?.y : selectedCoords?.x) ?? (stubs.length - 1);
+    // const newStubs = [
+    //   ...stubs.filter((_, index) => index < selectedOrEnd).map((stub) => [...stub]),
+    //   ...stubs.splice(selectedOrEnd + 1).map((stub) => [...stub])
+    // ]
+    // updateAllStubs(newStubs, isHorizontal, true, true);
   }
 
   return (
@@ -319,7 +212,7 @@ export default function RecipeReviewCard() {
             <IconButton
               size="large"
               color="inherit"
-              aria-label={(selectedCoords?.x == null) ? "Remove last color stub." : "Remove selected color stub."}
+              aria-label={/*(selectedCoords?.x == null) ?*/ "Remove last color stub." /*: "Remove selected color stub."*/}
               onClick={removeStub}
             >
               <RemoveIcon />
@@ -346,32 +239,16 @@ export default function RecipeReviewCard() {
           width: '100%'
         }}>
           {/* @ts-ignore */}
-          <HueSlider tinyColor={globalColor} onChange={updateGlobalColor} />
+          <HueSlider color={palette.globalColor} onChange={handleSelectedColorChange(ColorChangeType.hue)} />
           {/* @ts-ignore */}
         </Box>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: getGridTemplateColumns(),
-            gridTemplateRows: getGridTemplateRows(),
-            height: '100%'
-          }}>
-          {orderedStubs.map((stub, y) =>
-            stub.map((color, x) =>
-              <ColorSwatch
-                key={`${x},${y}`}
-                color={PaletteColor.build(isBrightnessMode ? PaletteColorDisplayType.Brightness : PaletteColorDisplayType.Hex, color)}
-                isCopied={copyCoords?.x === x && copyCoords?.y === y}
-                isSelected={selectedCoords?.x === x && selectedCoords?.y === y}
-                onChange={handleColorChange(x, y)}
-                onCopy={copy(x, y)}
-                onDeselect={updateSelectedCoords()}
-                onPaste={paste(x, y)}
-                onSelect={updateSelectedCoords({ x, y })}
-              />
-            )
-          )}
-        </Box>
+        <ColorPalette
+          palette={palette}
+          onSwatchDeselect={handleColorDeselection}
+          onSwatchSelect={handleColorSelection}
+          onUpdateSelectedColorSV={handleSelectedColorChange(ColorChangeType.sv)}
+          onUpdateSelectedColor={handleSelectedColorChange(ColorChangeType.all)}
+        />
       </Box>
       <SwipeableDrawer
         anchor="left"
@@ -394,7 +271,7 @@ export default function RecipeReviewCard() {
                 <Checkbox
                   edge="end"
                   onChange={handleToggleDirection}
-                  checked={isHorizontal}
+                  checked={palette.isHorizontal}
                   inputProps={{ 'aria-labelledby': 'toggleDirection' }}
                 />
               }
@@ -408,7 +285,7 @@ export default function RecipeReviewCard() {
                 <Checkbox
                   edge="end"
                   onChange={handleToggleIsBrightnessMode}
-                  checked={isBrightnessMode}
+                  checked={palette.displayAs === ColorDisplayType.Brightness}
                   inputProps={{ 'aria-labelledby': 'toggleBrightnessMode' }}
                 />
               }
@@ -419,10 +296,10 @@ export default function RecipeReviewCard() {
             </ListItem>
             <ListItem secondaryAction={
               <IconButton edge="end" aria-label="Lock saturation and value" onClick={handleToggleSVLock}>
-                {!isSVLocked &&
+                {!palette.isSVLocked &&
                   <LockOpenIcon />
                 }
-                {isSVLocked &&
+                {palette.isSVLocked &&
                   <LockIcon />
                 }
               </IconButton>
@@ -433,10 +310,10 @@ export default function RecipeReviewCard() {
             </ListItem>
             <ListItem secondaryAction={
               <IconButton edge="end" aria-label="Lock hue" onClick={handleToggleHueLock}>
-                {!isHueLocked &&
+                {!palette.isHueLocked &&
                   <LockOpenIcon />
                 }
-                {isHueLocked &&
+                {palette.isHueLocked &&
                   <LockIcon />
                 }
               </IconButton>

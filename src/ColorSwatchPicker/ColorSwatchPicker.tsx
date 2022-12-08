@@ -10,24 +10,30 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import PaletteColor from '../PaletteColor';
+import Color from '../Color';
+import Palette from '../Palette';
 import SaturationPicker from '../SaturationPicker';
 
 import styles from './ColorSwatchPicker.module.scss';
 
 interface ColorSwatchPickerProps {
-    color: PaletteColor,
-    onChange: ((result: PaletteColor) => void),
+    color: Color,
+    onPaste: ((result: Color) => void),
+    onChange: ((result: Color) => void),
     onCopy: (() => void),
     onDeselect: (() => void),
-    onPaste: (() => void),
 }
 
-export default function ColorSwatchPicker({ color, onChange, onCopy, onDeselect, onPaste }: ColorSwatchPickerProps) {
-    const handleColorChange = (newColor: PaletteColor) => {
+export default function ColorSwatchPicker({ color, onChange, onCopy, onPaste, onDeselect }: ColorSwatchPickerProps) {
+    const handleColorChange = (newColor: Color) => {
         if (newColor.equals(color)) return;
         onChange(newColor);
     };
+
+    const handlePaste = () => {
+        if (Palette.copied == null || Palette.copied!.equals(color)) return;
+        onPaste(Palette.copied!);
+    }
 
     return (
         <Box className={styles.colorSwatchPicker}>
@@ -47,7 +53,7 @@ export default function ColorSwatchPicker({ color, onChange, onCopy, onDeselect,
                     <IconButton size="small" onClick={onCopy}>
                         <ContentCopyIcon />
                     </IconButton>
-                    <IconButton size="small" onClick={onPaste}>
+                    <IconButton size="small" onClick={handlePaste}>
                         <ContentPasteIcon />
                     </IconButton>
                     <IconButton size="small">

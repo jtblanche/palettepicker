@@ -1,0 +1,1 @@
+export { ColorDisplayType, default } from './Color'
