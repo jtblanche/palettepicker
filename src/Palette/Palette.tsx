@@ -129,6 +129,51 @@ export default class Palette {
 
     }
 
+    public buildNewFromAddNewStub(): Palette {
+        let newStubs = [...this.stubs];
+        const selectedOrEnd: number = this.selectedLocation?.stubIndex ?? (newStubs.length - 1);
+        if (selectedOrEnd != -1) {
+            newStubs = [
+                ...newStubs.filter((_, index) => index <= selectedOrEnd).map((stub) => stub),
+                newStubs[selectedOrEnd].copy(),
+                ...newStubs.splice(selectedOrEnd + 1).map((stub) => stub)
+            ]
+        } else {
+            const defaultColors = [
+                "#951F27",
+                "#EF5C5A",
+                "#FFA7A5",
+                "#FFEEEE"
+            ];
+            const swatches = defaultColors.map(
+                (hex: string): Swatch => {
+                    const color = Color.build(this.displayAs, hex);
+                    return Swatch.build(color)
+                }
+            );
+            newStubs = [
+                Stub.build(swatches, this.displayAs, { isHorizontal: this.isHorizontal, isHueLocked: this.isHueLocked }),
+            ];
+        }
+        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSVLocked, this.displayAs, this.globalColor, this.selectedLocation);
+
+    }
+
+    public buildNewFromRemoveStub(): Palette {
+        const prevLocation = this.selectedLocation;
+        const newPalette = this.buildNewFromDeselection();
+        let newStubs = [...newPalette.stubs];
+        const selectedOrEnd: number = prevLocation?.stubIndex ?? (newStubs.length - 1);
+        if (selectedOrEnd != -1) {
+            newStubs = [
+                ...newStubs.filter((_, index) => index < selectedOrEnd).map((stub) => stub),
+                ...newStubs.splice(selectedOrEnd + 1).map((stub) => stub)
+            ]
+        }
+        return new Palette(newStubs, newPalette.isHorizontal, newPalette.isHueLocked, newPalette.isSVLocked, newPalette.displayAs, newPalette.globalColor, newPalette.selectedLocation);
+
+    }
+
     public buildNewPaletteByDisplayAs(displayAs: ColorDisplayType): Palette {
         if (this.displayAs == displayAs) return this;
         let newStubs = [...this.stubs];

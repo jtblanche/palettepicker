@@ -174,22 +174,19 @@ export default function RecipeReviewCard() {
   }
 
   const addStub = () => {
-    // const selectedOrEnd: number = ((isHorizontal) ? selectedCoords?.y : selectedCoords?.x) ?? (stubs.length - 1);
-    // const newStubs = [
-    //   ...stubs.filter((_, index) => index <= selectedOrEnd).map((stub) => [...stub]),
-    //   [...stubs[selectedOrEnd]],
-    //   ...stubs.splice(selectedOrEnd + 1).map((stub) => [...stub])
-    // ]
-    // updateAllStubs(newStubs, isHorizontal, false, true);
+    setPalette(oldPalette => {
+      const newPalette = oldPalette.buildNewFromAddNewStub();
+      localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
+      return newPalette;
+    });
   }
 
   const removeStub = () => {
-    // const selectedOrEnd: number = ((isHorizontal) ? selectedCoords?.y : selectedCoords?.x) ?? (stubs.length - 1);
-    // const newStubs = [
-    //   ...stubs.filter((_, index) => index < selectedOrEnd).map((stub) => [...stub]),
-    //   ...stubs.splice(selectedOrEnd + 1).map((stub) => [...stub])
-    // ]
-    // updateAllStubs(newStubs, isHorizontal, true, true);
+    setPalette(oldPalette => {
+      const newPalette = oldPalette.buildNewFromRemoveStub();
+      localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
+      return newPalette;
+    });
   }
 
   return (

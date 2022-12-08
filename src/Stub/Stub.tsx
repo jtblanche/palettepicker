@@ -102,6 +102,10 @@ export default class Stub {
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
 
+    public copy(): Stub {
+        return new Stub(this.swatches.map(swatch => swatch.copy()), this.displayAs, this.isHorizontal, this.isHueLocked, false, null);
+    }
+
     private constructor(
         swatches: Array<Swatch>,
         displayAs: ColorDisplayType,

@@ -37,6 +37,10 @@ export default class Swatch {
         return new Swatch(this.color, false, isShadeSelected, this.isCopied);
     }
 
+    public copy(): Swatch {
+        return new Swatch(this.color, false, this.isShadeSelected || this.isSelected, false);
+    }
+
     private constructor(
         color: Color,
         isSelected: boolean,
