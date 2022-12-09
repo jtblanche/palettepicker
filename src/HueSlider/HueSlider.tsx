@@ -12,7 +12,7 @@ interface HueSliderProps {
 
 export default function HueSlider({ color, onChange }: HueSliderProps) {
     const handleColorChangeHsl = (hslResult: ColorFormats.HSL) => {
-        const newColor = color.buildNewFromHue(Color.build(color.displayAs, hslResult));
+        const newColor = color.buildNewFromHue(Color.build(hslResult));
         if (newColor.equals(color)) return;
         onChange(newColor);
     };

@@ -1,16 +1,6 @@
 import Color, { ColorDisplayType } from '../Color';
-import Palette from '../Palette';
-
-export interface ColorLocation {
-    stubIndex: number;
-    swatchIndex: number;
-}
-
-export enum ColorChangeType {
-    hue,
-    svl,
-    all
-}
+import Palette, { ColorChangeType } from '../Palette';
+import ColorLocation from '../ColorLocation';
 
 export interface SettingsFlags {
     isHorizontal: boolean,
@@ -36,7 +26,7 @@ export default class Settings {
         displayAs: ColorDisplayType,
         flags: SettingsFlags,
     ): Settings {
-        return new Settings(displayAs, Color.build(displayAs, 'blue'), null, null, null, flags);
+        return new Settings(displayAs, Color.build('blue'), null, null, null, flags);
     }
 
     public buildNewFromDeselection() {
@@ -68,7 +58,7 @@ export default class Settings {
         );
     }
 
-    public buildNewFromSelection({ stubIndex, swatchIndex }: ColorLocation, palette: Palette): Settings {
+    public buildNewFromSelection(location: ColorLocation, palette: Palette): Settings {
         const {
             displayAs,
             selectedLocation,
@@ -80,17 +70,55 @@ export default class Settings {
             copiedLocation,
             copied,
         } = this;
-        if (selectedLocation?.stubIndex == stubIndex && selectedLocation?.swatchIndex == swatchIndex) return this;
+        if (location.equals(selectedLocation)) return this;
         return new Settings(
             displayAs,
-            palette.getColor({
-                stubIndex,
-                swatchIndex
-            }),
+            palette.getColor(location),
+            location,
+            copiedLocation,
+            copied,
             {
-                stubIndex,
-                swatchIndex
-            },
+                isHorizontal,
+                isHueLocked,
+                isSaturationLocked,
+                isValueLocked,
+                isLightnessLocked,
+            }
+        );
+    }
+
+    public buildNewFromGlobalColor(color: Color, changeType: ColorChangeType): Settings {
+        let updatedColor = color;
+        switch (changeType) {
+            case ColorChangeType.hue:
+                updatedColor = this.globalColor.buildNewFromHue(color);
+                break;
+            case ColorChangeType.svl:
+                updatedColor = this.globalColor.buildNewFromSVL(color, {
+                    isSaturationChange: true,
+                    isValueChange: true,
+                    isLightnessChange: false
+                });
+                break;
+            default:
+                break;
+        }
+        if (this.globalColor.equals(updatedColor)) return this;
+        const {
+            displayAs,
+            selectedLocation,
+            isHueLocked,
+            isHorizontal,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            copiedLocation,
+            copied,
+        } = this;
+        return new Settings(
+            displayAs,
+            updatedColor,
+            selectedLocation,
             copiedLocation,
             copied,
             {

@@ -9,6 +9,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import Color from '../Color';
 import Swatch from '../Swatch';
 import Settings from '../Settings';
+import ColorLocation from '../ColorLocation';
 
 import styles from './ColorSwatch.module.scss';
 
@@ -16,6 +17,7 @@ interface ColorSwatchProps {
     className?: string | null,
     swatch: Swatch,
     settings: Settings,
+    location: ColorLocation,
     onChange: ((result: Color) => void),
     onPaste: ((result: Color) => void),
     onCopy: (() => void),
@@ -27,23 +29,28 @@ export default function ColorSwatch({
     className = null,
     swatch,
     settings,
+    location,
     onChange,
     onPaste,
     onCopy,
     onDeselect,
     onSelect
 }: ColorSwatchProps) {
-    const thisIsNull = swatch.isCopied ? console.log('swatch copied') : null;
+    const isCopied = location.equals(settings.copiedLocation);
+    const isSelected = location.equals(settings.selectedLocation);
+    const isShadeSelected = location.equalsSwatchIndexOnly(settings.selectedLocation);
+    const isHueSelected = location.equalsStubIndexOnly(settings.selectedLocation);
 
     const brightnessClass = swatch.color.isDark ? styles.light : styles.dark;
 
-    const showAnyEdges = swatch.isSelected || swatch.isHueSelected || swatch.isShadeSelected;
-    const showHorizontalEdges = swatch.isHorizontal ? swatch.isHueSelected : swatch.isShadeSelected;
-    const showVerticalEdges = swatch.isHorizontal ? swatch.isShadeSelected : swatch.isHueSelected;
-    const containerClass = swatch.isSelected ? styles.colorContainerSelected
+    const showAnyEdges = isSelected || isHueSelected || isShadeSelected;
+    const showHorizontalEdges = settings.isHorizontal ? isHueSelected : isShadeSelected;
+    const showVerticalEdges = settings.isHorizontal ? isShadeSelected : isHueSelected;
+    const containerClass = isSelected ? styles.colorContainerSelected
         : showHorizontalEdges ? styles.colorContainerHorizontalEdge
             : showVerticalEdges ? styles.colorContainerVerticalEdge
                 : styles.colorContainer;
+    const backgroundColor = swatch.color.toBackgroundColor(settings);
 
     return (
         <Box
@@ -51,20 +58,20 @@ export default function ColorSwatch({
                 backgroundColor: showAnyEdges ? swatch.color.brightnessHex : 'white',
             }}
             className={`${className ?? ''} ${containerClass} ${brightnessClass}`.trim()} >
-            {(swatch.isSelected || showHorizontalEdges) && (
+            {(isSelected || showHorizontalEdges) && (
                 <Box
                     sx={{
                         backgroundColor: swatch.color.brightnessHex
                     }}
                     className={styles.horizontalTop}>
-                    {swatch.isSelected && (
+                    {isSelected && (
                         <IconButton size="small">
                             <KeyboardArrowUpIcon />
                         </IconButton>
                     )}
                 </Box>
             )}
-            {(swatch.isSelected || showVerticalEdges) && (
+            {(isSelected || showVerticalEdges) && (
                 <React.Fragment>
                     <Box
                         sx={{
@@ -72,7 +79,7 @@ export default function ColorSwatch({
                         }}
                         className={styles.verticalLeft}>
 
-                        {swatch.isSelected && (
+                        {isSelected && (
                             <IconButton size="small">
                                 <KeyboardArrowLeftIcon />
                             </IconButton>
@@ -84,7 +91,7 @@ export default function ColorSwatch({
                         }}
                         className={styles.verticalRight}>
 
-                        {swatch.isSelected && (
+                        {isSelected && (
                             <IconButton size="small">
                                 <KeyboardArrowRightIcon />
                             </IconButton>
@@ -92,14 +99,14 @@ export default function ColorSwatch({
                     </Box>
                 </React.Fragment>
             )}
-            {(swatch.isSelected || showHorizontalEdges) && (
+            {(isSelected || showHorizontalEdges) && (
                 <Box
                     sx={{
                         backgroundColor: swatch.color.brightnessHex
                     }}
                     className={styles.horizontalBottom}>
 
-                    {swatch.isSelected && (
+                    {isSelected && (
                         <IconButton size="small">
                             <KeyboardArrowDownIcon />
                         </IconButton>
@@ -107,12 +114,12 @@ export default function ColorSwatch({
                 </Box>
             )}
             <Box className={styles.borderBox}>
-                <Box className={`${styles.colorSwatch} ${swatch.isCopied ? styles.copyBorder : ''}`.trim()}
+                <Box className={`${styles.colorSwatch} ${isCopied ? styles.copyBorder : ''}`.trim()}
                     onClick={onSelect}
                     sx={{
-                        backgroundColor: swatch.color.backgroundColor,
+                        backgroundColor: backgroundColor,
                     }}>
-                    {swatch.isSelected ? <ColorSwatchPicker
+                    {isSelected ? <ColorSwatchPicker
                         color={swatch.color}
                         settings={settings}
                         onChange={onChange}

@@ -1,1 +1,1 @@
-export { type ColorLocation, ColorChangeType, default } from './Palette'
+export { ColorChangeType, default } from './Palette'

@@ -1,5 +1,6 @@
 import Color, { ColorDisplayType } from '../Color';
 import Swatch from '../Swatch';
+import Settings from '../Settings';
 
 interface StubFlags {
     isHorizontal: boolean;
@@ -14,119 +15,50 @@ interface ChangeFlags {
 
 export default class Stub {
     readonly swatches: Array<Swatch>;
-    readonly displayAs: ColorDisplayType;
-    readonly isHorizontal: boolean;
-    readonly isSelected: boolean;
-    // number for selected or shadeSelected based on isSelected
-    readonly selectedIndex: number | null;
-    readonly isHueLocked: boolean;
 
-    public static build(swatches: Array<Swatch>, displayAs: ColorDisplayType, { isHorizontal, isHueLocked }: StubFlags): Stub {
-        return new Stub(swatches, displayAs, isHorizontal, isHueLocked);
-    }
-
-    // isSelected true updates isSelected false updates isShadeSelected
-    // index = number index of selected or shade to update or null to make all false
-    private buildNewFromIsSelected(isSelected: boolean = false, index: number | null = null): Stub {
-        if (this.isSelected == isSelected && this.selectedIndex == index) return this;
-        let newSwatches = [...this.swatches];
-        if (isSelected) {
-            newSwatches = newSwatches.map(
-                (swatch, i) => swatch.buildNewFromSelectedStub(index == i)
-            );
-        } else {
-            newSwatches = newSwatches.map(
-                (swatch, i) => swatch.buildNewFromDeselectedStub(index == i)
-            );
-        }
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, isSelected, index);
-    }
-
-    public buildNewFromDisplayAs(displayAs: ColorDisplayType): Stub {
-        let newSwatches = [...this.swatches];
-        newSwatches = newSwatches.map((swatch) => swatch.buildNewFromDisplayAs(displayAs));
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
-    }
-
-    public buildNewFromIsHorizontal(isHorizontal: boolean): Stub {
-        if (this.isHorizontal == isHorizontal) return this;
-        let newSwatches = [...this.swatches];
-        newSwatches = newSwatches.map((swatch) => swatch.buildNewFromIsHorizontal(isHorizontal));
-        return new Stub(newSwatches, this.displayAs, isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
-    }
-
-    public buildNewFromIsHueLocked(isHueLocked: boolean): Stub {
-        if (this.isHueLocked == isHueLocked) return this;
-        return new Stub(this.swatches, this.displayAs, this.isHorizontal, isHueLocked, this.isSelected, this.selectedIndex);
-    }
-
-    public buildNewFromDeselectAll(): Stub {
-        return this.buildNewFromIsSelected();
-    }
-
-    public buildNewFromShadeIndex(index: number): Stub {
-        return this.buildNewFromIsSelected(false, index);
-    }
-
-    public buildNewFromSelectedIndex(index: number): Stub {
-        return this.buildNewFromIsSelected(true, index);
-    }
-
-    public buildNewFromIsCopied(index: number, isCopied: boolean): Stub {
-        const newSwatches = [...this.swatches];
-        newSwatches[index] = newSwatches[index].buildNewFromIsCopied(isCopied);
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
+    public static build(swatches: Array<Swatch>): Stub {
+        return new Stub(swatches);
     }
 
     public buildNewFromSwatchColor(index: number, color: Color) {
         const newSwatches = [...this.swatches];
         newSwatches[index] = newSwatches[index].buildNewFromColor(color);
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
+        return new Stub(newSwatches);
     }
 
-    public buildNewFromHueAndSV(index: number, color: Color): Stub {
-        if (!this.isHueLocked) return this.buildNewFromSwatchColor(index, color);
+    public buildNewFromHueAndSV(index: number, color: Color, settings: Settings): Stub {
+        if (!settings.isHueLocked) return this.buildNewFromSwatchColor(index, color);
         let newSwatches = [...this.swatches];
 
         newSwatches = newSwatches.map((swatch, i) => (index == i)
             ? swatch.buildNewFromColor(color)
             : swatch.buildNewFromColor(swatch.color.buildNewFromHue(color)));
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
+        return new Stub(newSwatches);
     }
 
-    public buildNewFromHue(index: number, color: Color): Stub {
-        if (!this.isHueLocked) return this.buildNewFromSwatchColor(index, this.swatches[index].color.buildNewFromHue(color));
+    public buildNewFromHue(index: number, color: Color, settings: Settings): Stub {
+        if (!settings.isHueLocked) return this.buildNewFromSwatchColor(index, this.swatches[index].color.buildNewFromHue(color));
 
         let newSwatches = [...this.swatches];
         newSwatches = newSwatches.map((swatch) =>
             swatch.buildNewFromColor(swatch.color.buildNewFromHue(color)));
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
+        return new Stub(newSwatches);
     }
 
     public buildNewFromSVL(index: number, color: Color, changeFlags: ChangeFlags): Stub {
         const newSwatches = [...this.swatches];
         const swatch = newSwatches[index];
         newSwatches[index] = swatch.buildNewFromColor(swatch.color.buildNewFromSVL(color, changeFlags));
-        return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
+        return new Stub(newSwatches);
     }
 
     public copy(): Stub {
-        return new Stub(this.swatches.map(swatch => swatch.copy()), this.displayAs, this.isHorizontal, this.isHueLocked, false, null);
+        return new Stub(this.swatches.map(swatch => swatch.copy()));
     }
 
     private constructor(
         swatches: Array<Swatch>,
-        displayAs: ColorDisplayType,
-        isHorizontal: boolean,
-        isHueLocked: boolean,
-        isSelected: boolean = false,
-        selectedIndex: number | null = null,
     ) {
         this.swatches = [...swatches];
-        this.displayAs = displayAs;
-        this.isHorizontal = isHorizontal;
-        this.isHueLocked = isHueLocked;
-        this.isSelected = isSelected;
-        this.selectedIndex = selectedIndex;
     }
 }

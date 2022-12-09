@@ -15,7 +15,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import MenuIcon from '@mui/icons-material/Menu';
 import Color, { ColorDisplayType } from '../Color';
-import Palette, { ColorLocation, ColorChangeType } from '../Palette';
+import Palette, { ColorChangeType } from '../Palette';
+import ColorLocation from '../ColorLocation';
 import PaletteIcon from '@mui/icons-material/Palette';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SaveIcon from '@mui/icons-material/Save';
@@ -176,6 +177,7 @@ export default function RecipeReviewCard() {
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
       return newPalette;
     });
+    setSettings(oldSettings => oldSettings.buildNewFromGlobalColor(color, changeType));
   }
 
   const handleToggleEditStubNumber = () => {
@@ -278,7 +280,7 @@ export default function RecipeReviewCard() {
           width: '100%'
         }}>
           {/* @ts-ignore */}
-          <HueSlider color={palette.globalColor} onChange={handleSelectedColorChange(ColorChangeType.hue)} />
+          <HueSlider color={settings.globalColor} onChange={handleSelectedColorChange(ColorChangeType.hue)} />
           {/* @ts-ignore */}
         </Box>
         <ColorPalette

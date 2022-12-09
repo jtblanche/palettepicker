@@ -2,8 +2,9 @@ import React from 'react';
 import ColorStub from '../ColorStub';
 import Box from '@mui/material/Box';
 import Color from '../Color';
-import Palette, { ColorLocation } from '../Palette';
+import Palette from '../Palette';
 import Settings from '../Settings';
+import ColorLocation from '../ColorLocation';
 
 import styles from './ColorPalette.module.scss';
 
@@ -29,16 +30,16 @@ export default function ColorPalette({
     onUpdateSelectedColor,
     onSwatchCopy,
 }: ColorPaletteProps) {
-    const thisIsNull = (palette.stubs[settings.copiedLocation?.stubIndex ?? -1]?.swatches[settings.copiedLocation?.swatchIndex ?? -1]?.isCopied ?? false) ? console.log('palette copied') : null;
     const handleSwatchCopy = (stubIndex: number) => (swatchIndex: number) => {
-        onSwatchCopy({ stubIndex, swatchIndex });
+        onSwatchCopy(new ColorLocation(stubIndex, swatchIndex));
     }
 
     const handleSwatchSelect = (stubIndex: number) => (swatchIndex: number) => {
-        onSwatchSelect({ stubIndex, swatchIndex });
+        onSwatchSelect(new ColorLocation(stubIndex, swatchIndex));
     }
-    const gridTemplateColumns = settings.isHorizontal ? '1fr' : palette.stubs.map((stub): string => stub.isSelected ? '4fr' : '1fr').join(' ');
-    const gridTemplateRows = settings.isHorizontal ? palette.stubs.map((stub): string => stub.isSelected ? '4fr' : '1fr').join(' ') : '1fr';
+    const stubFr = palette.stubs.map((_, stubIndex): string => settings.selectedLocation?.stubIndex == stubIndex ? '4fr' : '1fr').join(' ')
+    const gridTemplateColumns = settings.isHorizontal ? '1fr' : stubFr;
+    const gridTemplateRows = settings.isHorizontal ? stubFr : '1fr';
 
     return (
         <Box
@@ -51,6 +52,7 @@ export default function ColorPalette({
                 <ColorStub
                     key={index}
                     stub={stub}
+                    stubIndex={index}
                     settings={settings}
                     onUpdateSelectedColorSV={onUpdateSelectedColorSV}
                     onUpdateSelectedColor={onUpdateSelectedColor}

@@ -1,4 +1,5 @@
 import tinycolor, { ColorFormats } from 'tinycolor2';
+import Settings from '../Settings';
 
 export enum ColorDisplayType {
     Hex,
@@ -17,7 +18,6 @@ interface ChangeFlags {
 
 export default class Color {
     readonly tinycolor: tinycolor.Instance;
-    readonly displayAs: ColorDisplayType;
     private _rgb: ColorFormats.RGB | null;
     private _rgbString: string | null;
     private _prgb: ColorFormats.PRGB | null;
@@ -36,34 +36,12 @@ export default class Color {
     readonly lastLockedValue: number;
     readonly lastLockedLightness: number;
 
-    public static build(displayAs: ColorDisplayType, colorInput: tinycolor.ColorInput): Color {
-        return new Color(displayAs, new tinycolor(colorInput));
-    }
-
-    public buildNewFromDisplayType(displayAs: ColorDisplayType): Color {
-        return new Color(
-            displayAs,
-            this.tinycolor,
-            this.lastLockedHue,
-            this.lastLockedSaturation,
-            this.lastLockedValue,
-            this.lastLockedLightness,
-            this._rgb,
-            this._rgbString,
-            this._prgb,
-            this._prgbString,
-            this._hsl,
-            this._hslString,
-            this._hsv,
-            this._hsvString,
-            this._hex,
-            this._brightnessHex,
-            this._isDark,
-        )
+    public static build(colorInput: tinycolor.ColorInput): Color {
+        return new Color(new tinycolor(colorInput));
     }
 
     public buildNewFromHue(updateTo: Color): Color {
-        return new Color(this.displayAs, new tinycolor({
+        return new Color(new tinycolor({
             h: updateTo.hsv.h,
             s: this.hsv.s,
             v: this.hsv.v
@@ -94,7 +72,7 @@ export default class Color {
                 s: lastLockedSaturation,
                 l: lastLockedLightness,
             });
-            return new Color(this.displayAs, newColor,
+            return new Color(newColor,
                 this.lastLockedHue,
                 lastLockedSaturation,
                 lastLockedValue,
@@ -105,7 +83,7 @@ export default class Color {
             s: lastLockedSaturation,
             v: lastLockedValue,
         });
-        return new Color(this.displayAs, newColor,
+        return new Color(newColor,
             this.lastLockedHue,
             lastLockedSaturation,
             lastLockedValue,
@@ -113,11 +91,9 @@ export default class Color {
     }
 
     private constructor(
-        displayAs: ColorDisplayType,
         color: tinycolor.Instance
     );
     private constructor(
-        displayAs: ColorDisplayType,
         color: tinycolor.Instance,
         lastLockedHue: number | null,
         lastLockedSaturation: number | null,
@@ -125,7 +101,6 @@ export default class Color {
         lastLockedLightness: number | null
     );
     private constructor(
-        displayAs: ColorDisplayType,
         color: tinycolor.Instance,
         lastLockedHue: number | null,
         lastLockedSaturation: number | null,
@@ -144,7 +119,6 @@ export default class Color {
         isDark: boolean | null,
     )
     private constructor(
-        displayAs: ColorDisplayType,
         color: tinycolor.Instance,
         lastLockedHue?: number | null,
         lastLockedSaturation?: number | null,
@@ -163,7 +137,6 @@ export default class Color {
         isDark?: boolean | null,
     ) {
         this.tinycolor = color;
-        this.displayAs = displayAs;
         this._rgb = rgb ?? null;
         this._rgbString = rgbString ?? null;
         this._prgb = prgb ?? null;
@@ -289,8 +262,8 @@ export default class Color {
         return this._isDark ?? this.getIsDark();
     }
 
-    private toBackgroundColor(): string {
-        switch (this.displayAs) {
+    public toBackgroundColor(settings: Settings): string {
+        switch (settings.displayAs) {
             case ColorDisplayType.Brightness:
                 this._backgroundColor = this.brightnessHex;
                 break;
@@ -300,12 +273,8 @@ export default class Color {
         return this._backgroundColor!;
     }
 
-    public get backgroundColor(): string {
-        return this._backgroundColor ?? this.toBackgroundColor();
-    }
-
-    private toOutputString(): string {
-        switch (this.displayAs) {
+    public toString(settings: Settings): string {
+        switch (settings.displayAs) {
             case ColorDisplayType.RGB:
                 this._outputString = this.rgbString;
                 break;
@@ -323,10 +292,6 @@ export default class Color {
                 break;
         }
         return this._outputString;
-    }
-
-    public toString(): string {
-        return this._outputString ?? this.toOutputString();
     }
 
     public equals(other: Color): boolean {

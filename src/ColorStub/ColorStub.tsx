@@ -7,12 +7,14 @@ import Stub from '../Stub';
 import styles from './ColorStub.module.scss';
 import Palette from '../Palette';
 import Settings from '../Settings';
+import ColorLocation from '../ColorLocation';
 
 
 interface ColorStubProps {
     className?: string | null,
     stub: Stub,
     settings: Settings,
+    stubIndex: number,
     onUpdateSelectedColor: (result: Color) => void,
     onUpdateSelectedColorSV: (result: Color) => void,
     onSwatchCopy: ((index: number) => void)
@@ -24,13 +26,15 @@ export default function ColorStub({
     className = null,
     stub,
     settings,
+    stubIndex,
     onUpdateSelectedColor,
     onUpdateSelectedColorSV,
     onSwatchCopy,
     onSwatchDeselect,
     onSwatchSelect
 }: ColorStubProps) {
-    const thisIsNull = (stub.swatches[settings.copiedLocation?.swatchIndex ?? -1]?.isCopied ?? false) ? console.log('stub copied') : null;
+    const location = (swatchIndex: number): ColorLocation => new ColorLocation(stubIndex, swatchIndex);
+    const isSelected = settings.selectedLocation?.stubIndex == stubIndex;
 
     const handleSwatchCopy = (index: number) => () => {
         onSwatchCopy(index);
@@ -39,9 +43,12 @@ export default function ColorStub({
     const handleSwatchSelect = (index: number) => () => {
         onSwatchSelect(index);
     }
-    const gridTemplateColumns = stub.isHorizontal ? stub.swatches.map((swatch): string => (swatch.isSelected || swatch.isShadeSelected) ? '4fr' : '1fr').join(' ') : '1fr';
-    const gridTemplateRows = stub.isHorizontal ? '1fr' : stub.swatches.map((swatch): string => (swatch.isSelected || swatch.isShadeSelected) ? '4fr' : '1fr').join(' ');
-    const gridRowsOrColumns: string | null = stub.isSelected ? `span ${stub.swatches.length}` : null;
+    const swatchesFr = stub.swatches.map((_, swatchIndex): string =>
+        (settings.selectedLocation?.swatchIndex == swatchIndex) ? '4fr' : '1fr'
+    ).join(' ');
+    const gridTemplateColumns = settings.isHorizontal ? swatchesFr : '1fr';
+    const gridTemplateRows = settings.isHorizontal ? '1fr' : swatchesFr;
+    const gridRowsOrColumns: string | null = isSelected ? `span ${stub.swatches.length}` : null;
 
     return (
         <Box
@@ -55,6 +62,7 @@ export default function ColorStub({
                     key={index}
                     swatch={swatch}
                     settings={settings}
+                    location={location(index)}
                     onChange={onUpdateSelectedColorSV}
                     onPaste={onUpdateSelectedColor}
                     onCopy={handleSwatchCopy(index)}

@@ -12,7 +12,7 @@ interface SaturationPickerProps {
 
 export default function HueSlider({ color, onChange = null }: SaturationPickerProps) {
     const handleColorChangeHsv = (hsvResult: ColorFormats.HSV, event: React.ChangeEvent<HTMLInputElement>) => {
-        const newPaletteColor = Color.build(color.displayAs, hsvResult);
+        const newPaletteColor = Color.build(hsvResult);
         if (newPaletteColor.equals(color)) return;
         if (onChange != null) {
             onChange(newPaletteColor);
