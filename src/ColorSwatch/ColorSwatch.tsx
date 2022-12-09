@@ -86,16 +86,16 @@ export default function ColorSwatch({
                     className={styles.horizontalTop}>
                     {settings.isHorizontal && showShadeTitle && (
                         <React.Fragment>
-                            <IconButton size="small" color="inherit">
+                            <IconButton size="small" color="inherit" onClick={methods.removeShade}>
                                 <DeleteIcon />
                             </IconButton>
-                            <IconButton size="small" color="inherit">
+                            {/* <IconButton size="small" color="inherit">
                                 <KeyboardArrowLeftIcon />
                             </IconButton>
                             <IconButton size="small" color="inherit">
                                 <KeyboardArrowRightIcon />
-                            </IconButton>
-                            <IconButton size="small" color="inherit">
+                            </IconButton> */}
+                            <IconButton size="small" color="inherit" onClick={methods.addShade}>
                                 <AddIcon />
                             </IconButton>
                         </React.Fragment>
@@ -105,12 +105,12 @@ export default function ColorSwatch({
                             <IconButton size="small" color="inherit" onClick={methods.removeStub}>
                                 <DeleteIcon />
                             </IconButton>
-                            <IconButton size="small" color="inherit">
+                            {/* <IconButton size="small" color="inherit">
                                 <KeyboardArrowLeftIcon />
                             </IconButton>
                             <IconButton size="small" color="inherit">
                                 <KeyboardArrowRightIcon />
-                            </IconButton>
+                            </IconButton> */}
                             <IconButton size="small" color="inherit" onClick={methods.addStub}>
                                 <AddIcon />
                             </IconButton>
@@ -132,12 +132,12 @@ export default function ColorSwatch({
                                 <IconButton size="small" color="inherit" onClick={methods.removeStub}>
                                     <DeleteIcon />
                                 </IconButton>
-                                <IconButton size="small" color="inherit">
+                                {/* <IconButton size="small" color="inherit">
                                     <KeyboardArrowUpIcon />
                                 </IconButton>
                                 <IconButton size="small" color="inherit">
                                     <KeyboardArrowDownIcon />
-                                </IconButton>
+                                </IconButton> */}
                                 <IconButton size="small" color="inherit" onClick={methods.addStub}>
                                     <AddIcon />
                                 </IconButton>
@@ -145,16 +145,16 @@ export default function ColorSwatch({
                         )}
                         {!settings.isHorizontal && showShadeTitle && (
                             <React.Fragment>
-                                <IconButton size="small" color="inherit">
+                                <IconButton size="small" color="inherit" onClick={methods.removeShade}>
                                     <DeleteIcon />
                                 </IconButton>
-                                <IconButton size="small" color="inherit">
+                                {/* <IconButton size="small" color="inherit">
                                     <KeyboardArrowUpIcon />
                                 </IconButton>
                                 <IconButton size="small" color="inherit">
                                     <KeyboardArrowDownIcon />
-                                </IconButton>
-                                <IconButton size="small" color="inherit">
+                                </IconButton> */}
+                                <IconButton size="small" color="inherit" onClick={methods.addShade}>
                                     <AddIcon />
                                 </IconButton>
                             </React.Fragment>

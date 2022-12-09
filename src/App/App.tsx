@@ -20,13 +20,18 @@ import ColorLocation from '../ColorLocation';
 import PaletteIcon from '@mui/icons-material/Palette';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SaveIcon from '@mui/icons-material/Save';
-import SwipeableDrawer from '@mui/material/SwipeableDrawer';
+import Drawer from '@mui/material/Drawer';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Settings, { UpdateMethods } from '../Settings';
 
 import './App.scss';
+
+interface AppState {
+  settings: Settings,
+  palette: Palette
+}
 
 export default function RecipeReviewCard() {
   const [open, setOpen] = React.useState(false);
@@ -89,12 +94,12 @@ export default function RecipeReviewCard() {
     }
   );
 
-  const [palette, setPalette] = React.useState(Palette.build(
-    _initialStubs,
-    _initialSettings
-  ));
-
-  const [settings, setSettings] = React.useState(_initialSettings);
+  const [{ settings, palette }, setState] = React.useState<AppState>({
+    palette: Palette.build(
+      _initialStubs,
+      _initialSettings
+    ), settings: _initialSettings
+  });
 
   const [isEditingStubNumber, setIsEditingStubNumber] = React.useState(false)
 
@@ -108,26 +113,35 @@ export default function RecipeReviewCard() {
   }
 
   const handleToggleDirection = () => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newIsHorizontal = !oldSettings.isHorizontal;
       localStorage.setItem('isHorizontal', newIsHorizontal.toString());
-      return oldSettings.buildNewFromIsHorizontal(newIsHorizontal)
+      return {
+        settings: oldSettings.buildNewFromIsHorizontal(newIsHorizontal),
+        palette
+      }
     });
   }
 
   const handleToggleHueLock = () => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newIsHueLocked = !oldSettings.isHueLocked;
       localStorage.setItem('isHueLocked', newIsHueLocked.toString());
-      return oldSettings.buildNewFromIsHueLocked(newIsHueLocked);
+      return {
+        palette,
+        settings: oldSettings.buildNewFromIsHueLocked(newIsHueLocked)
+      };
     });
   }
 
   const handleSwatchCopy = (location: ColorLocation) => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newSettings = oldSettings.buildNewFromSaveToClipboard(location, palette);
       navigator.clipboard.writeText(newSettings.copied!.hex);
-      return newSettings;
+      return {
+        palette,
+        settings: newSettings
+      };
     });
   }
 
@@ -143,57 +157,69 @@ export default function RecipeReviewCard() {
   }
 
   const handleToggleSaturationLock = () => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newIsSVLocked = !oldSettings.isSaturationLocked;
       localStorage.setItem('isSaturationLocked', newIsSVLocked.toString());
-      return oldSettings.buildNewFromIsSaturationLocked(newIsSVLocked);
+      return {
+        palette,
+        settings: oldSettings.buildNewFromIsSaturationLocked(newIsSVLocked)
+      };
     });
   }
 
   const handleToggleValueLock = () => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newIsSVLocked = !oldSettings.isValueLocked;
       localStorage.setItem('isValueLocked', newIsSVLocked.toString());
-      return oldSettings.buildNewFromIsValueLocked(newIsSVLocked);
+      return {
+        palette,
+        settings: oldSettings.buildNewFromIsValueLocked(newIsSVLocked)
+      };
     });
   }
 
   const handleToggleLightnessLock = () => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newIsSVLocked = !oldSettings.isLightnessLocked;
       localStorage.setItem('isLightnessLocked', newIsSVLocked.toString());
-      return oldSettings.buildNewFromIsLightnessLocked(newIsSVLocked);
+      return {
+        palette,
+        settings: oldSettings.buildNewFromIsLightnessLocked(newIsSVLocked)
+      };
     });
   }
 
   const handleToggleIsBrightnessMode = () => {
-    setSettings(oldSettings => {
+    setState(({ settings: oldSettings, palette }) => {
       const newIsBrightnessMode = !(oldSettings.displayAs === ColorDisplayType.Brightness);
       localStorage.setItem('isBrightnessMode', newIsBrightnessMode.toString());
-      return oldSettings.buildNewFromDisplayAs(newIsBrightnessMode ? ColorDisplayType.Brightness : ColorDisplayType.RGB)
+      return {
+        palette,
+        settings: oldSettings.buildNewFromDisplayAs(newIsBrightnessMode ? ColorDisplayType.Brightness : ColorDisplayType.RGB)
+      };
     });
   }
 
   const handleColorSelection = (location: ColorLocation) => {
-    setSettings(oldSettings => oldSettings.buildNewFromSelection(location, palette));
+    setState(({ settings: oldSettings, palette }) => ({ palette, settings: oldSettings.buildNewFromSelection(location, palette) }));
   }
 
   const handleColorDeselection = () => {
-    setSettings(oldSettings => oldSettings.buildNewFromDeselection());
+    setState(({ settings: oldSettings, palette }) => ({ palette, settings: oldSettings.buildNewFromDeselection() }));
   }
 
   const handleSelectedColorChange = (changeType: ColorChangeType) => (color: Color) => {
-    setPalette(oldPalette => {
-      const newPalette = oldPalette.buildNewFromColor(color, changeType, settings);
+    setState(({ settings: oldSettings, palette: oldPalette }) => {
+      const newPalette = oldPalette.buildNewFromColor(color, changeType, oldSettings);
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
-      return newPalette;
-    });
-    setSettings(oldSettings => {
       let newSettings = oldSettings.buildNewFromGlobalColor(color, changeType);
       if (newSettings.selectedLocation != null && newSettings.selectedLocation.equals(newSettings.copiedLocation)) {
         newSettings = newSettings.buildNewFromEmptyClipboard();
       }
-      return newSettings;
+      return {
+        palette: newPalette,
+        settings: newSettings
+      };
     });
   }
 
@@ -243,18 +269,46 @@ export default function RecipeReviewCard() {
   }
 
   const addStub = () => {
-    setPalette(oldPalette => {
-      const newPalette = oldPalette.buildNewFromAddNewStub(settings);
+    setState(({ settings: oldSettings, palette: oldPalette }) => {
+      const newPalette = oldPalette.buildNewFromAddNewStub(oldSettings);
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
-      return newPalette;
+      return {
+        palette: newPalette,
+        settings: oldSettings.buildNewFromAddStub()
+      };
     });
   }
 
   const removeStub = () => {
-    setPalette(oldPalette => {
-      const newPalette = oldPalette.buildNewFromRemoveStub(settings);
+    setState(({ settings: oldSettings, palette: oldPalette }) => {
+      const newPalette = oldPalette.buildNewFromRemoveStub(oldSettings);
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
-      return newPalette;
+      return {
+        palette: newPalette,
+        settings: oldSettings.buildNewFromRemoveStub()
+      };
+    });
+  }
+
+  const addShade = () => {
+    setState(({ settings: oldSettings, palette: oldPalette }) => {
+      const newPalette = oldPalette.buildNewFromAddNewShade(oldSettings);
+      localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
+      return {
+        palette: newPalette,
+        settings: oldSettings.buildNewFromAddShade()
+      };
+    });
+  }
+
+  const removeShade = () => {
+    setState(({ settings: oldSettings, palette: oldPalette }) => {
+      const newPalette = oldPalette.buildNewFromRemoveShade(oldSettings);
+      localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
+      return {
+        palette: newPalette,
+        settings: oldSettings.buildNewFromRemoveShade()
+      };
     });
   }
 
@@ -274,6 +328,8 @@ export default function RecipeReviewCard() {
     changeStubNumber,
     addStub,
     removeStub,
+    addShade,
+    removeShade,
   };
 
   return (
@@ -300,23 +356,6 @@ export default function RecipeReviewCard() {
             Palette Picker
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <IconButton
-              size="large"
-              edge="start"
-              color="inherit"
-              aria-label="Add a color stub"
-              onClick={addStub}
-            >
-              <AddIcon />
-            </IconButton>
-            <IconButton
-              size="large"
-              color="inherit"
-              aria-label={/*(selectedCoords?.x == null) ?*/ "Remove last color stub." /*: "Remove selected color stub."*/}
-              onClick={removeStub}
-            >
-              <RemoveIcon />
-            </IconButton>
             {/* <IconButton
               size="large"
               aria-label="account of current user"
@@ -348,11 +387,10 @@ export default function RecipeReviewCard() {
           methods={methods}
         />
       </Box>
-      <SwipeableDrawer
+      <Drawer
         anchor="left"
         open={open}
         onClose={() => setOpen(false)}
-        onOpen={() => setOpen(true)}
       >
         <Box
           sx={{ width: 300 }}
@@ -487,7 +525,7 @@ export default function RecipeReviewCard() {
             </ListItem> */}
           </List>
         </Box>
-      </SwipeableDrawer>
+      </Drawer>
     </Box >
   );
 }

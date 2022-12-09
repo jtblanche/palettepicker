@@ -89,6 +89,7 @@ export default class Palette {
     }
 
     public buildNewFromAddNewStub(settings: Settings): Palette {
+        if (this.stubs.length >= 10) return this;
         let newStubs = [...this.stubs];
         const selectedOrEnd: number = settings.selectedLocation?.stubIndex ?? (newStubs.length - 1);
         if (selectedOrEnd !== -1) {
@@ -118,7 +119,15 @@ export default class Palette {
 
     }
 
+    public buildNewFromAddNewShade(settings: Settings): Palette {
+        if (this.stubs[0].swatches.length >= 10) return this;
+        let newStubs = [...this.stubs];
+        newStubs = newStubs.map(stub => stub.buildNewFromAddShade(settings));
+        return new Palette(newStubs);
+    }
+
     public buildNewFromRemoveStub(settings: Settings): Palette {
+        if (this.stubs.length <= 1) return this;
         const prevLocation = settings.selectedLocation;
         let newStubs = [...this.stubs];
         const selectedOrEnd: number = prevLocation?.stubIndex ?? (newStubs.length - 1);
@@ -128,6 +137,14 @@ export default class Palette {
                 ...newStubs.splice(selectedOrEnd + 1).map((stub) => stub)
             ]
         }
+        return new Palette(newStubs);
+
+    }
+
+    public buildNewFromRemoveShade(settings: Settings): Palette {
+        if (this.stubs[0].swatches.length <= 1) return this;
+        let newStubs = [...this.stubs];
+        newStubs = newStubs.map(stub => stub.buildNewFromRemoveShade(settings));
         return new Palette(newStubs);
 
     }

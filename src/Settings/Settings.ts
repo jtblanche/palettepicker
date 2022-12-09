@@ -18,6 +18,8 @@ export interface UpdateMethods {
     changeStubNumber: (stubNumber: number) => void;
     addStub: () => void;
     removeStub: () => void;
+    addShade: () => void;
+    removeShade: () => void;
 }
 
 export interface SettingsFlags {
@@ -147,6 +149,153 @@ export default class Settings {
             copiedLocation,
             copied,
             bottomRightLocation,
+            {
+                isHorizontal,
+                isHueLocked,
+                isSaturationLocked,
+                isValueLocked,
+                isLightnessLocked,
+            }
+        );
+    }
+
+    public buildNewFromAddStub(): Settings {
+        if (this.bottomRightLocation.stubIndex >= 9) return this;
+        const {
+            displayAs,
+            isHorizontal,
+            globalColor,
+            selectedLocation,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            bottomRightLocation,
+        } = this;
+        const nextSelectedLocation = selectedLocation != null ? new ColorLocation(
+            selectedLocation!.stubIndex + 1,
+            selectedLocation!.swatchIndex) : null;
+
+        return new Settings(
+            displayAs,
+            globalColor,
+            nextSelectedLocation,
+            null,
+            null,
+            new ColorLocation(
+                bottomRightLocation.stubIndex + 1,
+                bottomRightLocation.swatchIndex
+            ),
+            {
+                isHorizontal,
+                isHueLocked,
+                isSaturationLocked,
+                isValueLocked,
+                isLightnessLocked,
+            }
+        );
+    }
+
+    public buildNewFromRemoveStub(): Settings {
+        if (this.bottomRightLocation.stubIndex <= 0) return this;
+        const {
+            displayAs,
+            isHorizontal,
+            globalColor,
+            selectedLocation,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            bottomRightLocation,
+        } = this;
+        const nextSelectedLocation = selectedLocation != null ? new ColorLocation(
+            selectedLocation!.stubIndex == 0 ? 0 : selectedLocation!.stubIndex - 1,
+            selectedLocation!.swatchIndex) : null;
+
+        return new Settings(
+            displayAs,
+            globalColor,
+            nextSelectedLocation,
+            null,
+            null,
+            new ColorLocation(
+                bottomRightLocation.stubIndex - 1,
+                bottomRightLocation.swatchIndex
+            ),
+            {
+                isHorizontal,
+                isHueLocked,
+                isSaturationLocked,
+                isValueLocked,
+                isLightnessLocked,
+            }
+        );
+    }
+
+    public buildNewFromAddShade(): Settings {
+        if (this.bottomRightLocation.swatchIndex >= 9) return this;
+        const {
+            displayAs,
+            isHorizontal,
+            globalColor,
+            selectedLocation,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            bottomRightLocation,
+        } = this;
+        const nextSelectedLocation = selectedLocation != null ? new ColorLocation(
+            selectedLocation!.stubIndex,
+            selectedLocation!.swatchIndex + 1) : null;
+        return new Settings(
+            displayAs,
+            globalColor,
+            nextSelectedLocation,
+            null,
+            null,
+            new ColorLocation(
+                bottomRightLocation.stubIndex,
+                bottomRightLocation.swatchIndex + 1
+            ),
+            {
+                isHorizontal,
+                isHueLocked,
+                isSaturationLocked,
+                isValueLocked,
+                isLightnessLocked,
+            }
+        );
+    }
+
+    public buildNewFromRemoveShade(): Settings {
+        if (this.bottomRightLocation.swatchIndex <= 0) return this;
+        const {
+            displayAs,
+            isHorizontal,
+            globalColor,
+            selectedLocation,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            bottomRightLocation,
+        } = this;
+        const nextSelectedLocation = selectedLocation != null ? new ColorLocation(
+            selectedLocation!.stubIndex,
+            selectedLocation!.swatchIndex == 0 ? 0 : selectedLocation!.swatchIndex - 1) : null;
+
+        return new Settings(
+            displayAs,
+            globalColor,
+            nextSelectedLocation,
+            null,
+            null,
+            new ColorLocation(
+                bottomRightLocation.stubIndex,
+                bottomRightLocation.swatchIndex - 1
+            ),
             {
                 isHorizontal,
                 isHueLocked,
