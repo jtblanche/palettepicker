@@ -16,6 +16,12 @@ interface ChangeFlags {
     isLightnessChange: boolean;
 }
 
+interface RGB {
+    r: number;
+    g: number;
+    b: number;
+}
+
 export default class Color {
     readonly tinycolor: tinycolor.Instance;
     private _rgb: ColorFormats.RGB | null;
@@ -27,6 +33,7 @@ export default class Color {
     private _hsv: ColorFormats.HSV | null;
     private _hsvString: string | null;
     private _hex: string | null;
+    private _luminance: number | null;
     private _brightnessHex: string | null;
     private _isDark: boolean | null;
     private _backgroundColor: string | null = null;
@@ -116,6 +123,7 @@ export default class Color {
         hsvString: string | null,
         hex: string | null,
         brightnessHex: string | null,
+        luminance: number | null,
         isDark: boolean | null,
     )
     private constructor(
@@ -134,6 +142,7 @@ export default class Color {
         hsvString?: string | null,
         hex?: string | null,
         brightnessHex?: string | null,
+        luminance?: number | null,
         isDark?: boolean | null,
     ) {
         this.tinycolor = color;
@@ -147,6 +156,7 @@ export default class Color {
         this._hsvString = hsvString ?? null;
         this._hex = hex ?? null;
         this._brightnessHex = brightnessHex ?? null;
+        this._luminance = luminance ?? null;
         this._isDark = isDark ?? null;
         this.lastLockedHue = lastLockedHue ?? this.hsv.h;
         this.lastLockedSaturation = lastLockedSaturation ?? this.hsv.s;
@@ -235,16 +245,59 @@ export default class Color {
         return this._hex ?? this.toHex();
     }
 
+    private toRgbPercent(): RGB {
+        return {
+            r: this.rgb.r / 255,
+            g: this.rgb.g / 255,
+            b: this.rgb.b / 255,
+        };
+    }
+
+    private toRgbLinear(): RGB {
+        const rgbPercent = this.toRgbPercent();
+        return {
+            r: this.percentToLinear(rgbPercent.r),
+            g: this.percentToLinear(rgbPercent.g),
+            b: this.percentToLinear(rgbPercent.b),
+        };
+    }
+
+    private percentToLinear(channel: number): number {
+        if (channel <= 0.4045) {
+            return channel / 12.92;
+        }
+        return Math.pow((channel + 0.055) / 1.055, 2.4);
+    }
+
+    public get luminance(): number {
+        return this._luminance ?? this.toLuminance();
+    }
+
+    private toLuminance(): number {
+        const rgbLinear = this.toRgbLinear();
+        this._luminance = (0.2126 * rgbLinear.r) + (0.7152 * rgbLinear.g) + (0.0722 * rgbLinear.b);
+        return this._luminance;
+    }
+
+    public toPerceivedLightnessPercent(): number {
+        const luminance = this.toLuminance();
+        if (luminance <= (216 / 24389)) {
+            return (luminance * (24389 / 27)) / 100;
+        }
+        return (Math.pow(luminance, (1 / 3)) * 116 - 16) / 100;
+    }
+
+    private toPerceivedLightnessValue(): number {
+        return this.toPerceivedLightnessPercent() * 255;
+    }
+
     private toBrightnessHex(): string {
-        const brightness = (Math.sqrt(
-            this.rgb.r * this.rgb.r * .241 +
-            this.rgb.g * this.rgb.g * .691 +
-            this.rgb.b * this.rgb.b * .068)).toFixed(0);
+        const brightness = this.toPerceivedLightnessValue();
         const brightColor = tinycolor({
             r: brightness,
             g: brightness,
             b: brightness
-        })
+        });
         this._brightnessHex = `#${brightColor.toHex()}`;
         return this._brightnessHex!;
     }

@@ -6,6 +6,7 @@ export interface UpdateMethods {
     handleToggleDirection: () => void;
     handleToggleHueLock: () => void;
     handleSwatchCopy: (location: ColorLocation) => void;
+    handlePaste: () => void;
     handleToggleSaturationLock: () => void;
     handleToggleValueLock: () => void;
     handleToggleLightnessLock: () => void;

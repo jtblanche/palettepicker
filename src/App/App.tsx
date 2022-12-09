@@ -118,7 +118,22 @@ export default function RecipeReviewCard() {
   }
 
   const handleSwatchCopy = (location: ColorLocation) => {
-    setSettings(oldSettings => oldSettings.buildNewFromSaveToClipboard(location, palette));
+    setSettings(oldSettings => {
+      const newSettings = oldSettings.buildNewFromSaveToClipboard(location, palette);
+      navigator.clipboard.writeText(newSettings.copied!.hex);
+      return newSettings;
+    });
+  }
+
+  const handlePaste = async () => {
+    const clipboardText = await navigator.clipboard.readText();
+    let color = settings.copied;
+    if (clipboardText.trim() != '') {
+      color = Color.build(clipboardText.trim());
+    }
+    if (settings.selectedLocation != null && color != null) {
+      handleSelectedColorChange(ColorChangeType.all)(color);
+    }
   }
 
   const handleToggleSaturationLock = () => {
@@ -167,7 +182,13 @@ export default function RecipeReviewCard() {
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
       return newPalette;
     });
-    setSettings(oldSettings => oldSettings.buildNewFromGlobalColor(color, changeType));
+    setSettings(oldSettings => {
+      let newSettings = oldSettings.buildNewFromGlobalColor(color, changeType);
+      if (newSettings.selectedLocation != null && newSettings.selectedLocation.equals(newSettings.copiedLocation)) {
+        newSettings = newSettings.buildNewFromEmptyClipboard();
+      }
+      return newSettings;
+    });
   }
 
   const handleToggleEditStubNumber = () => {
@@ -183,6 +204,29 @@ export default function RecipeReviewCard() {
       }
     }
   }
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      event.preventDefault();
+      let charCode = event.key.toLowerCase();
+      if ((event.ctrlKey || event.metaKey) && charCode === 'c') {
+        if (settings.selectedLocation != null) {
+          handleSwatchCopy(settings.selectedLocation);
+        }
+      } else if ((event.ctrlKey || event.metaKey) && charCode === 'v') {
+        handlePaste();
+      }
+    }
+
+    /* @ts-ignore */
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Don't forget to clean up
+    return function cleanup() {
+      /* @ts-ignore */
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [settings]);
 
   const changeStubNumber = (stubNumber: number) => {
     // const newStubs = stubs.map((stub) => [
@@ -212,6 +256,7 @@ export default function RecipeReviewCard() {
     handleToggleDirection,
     handleToggleHueLock,
     handleSwatchCopy,
+    handlePaste,
     handleToggleSaturationLock,
     handleToggleValueLock,
     handleToggleLightnessLock,
@@ -226,11 +271,12 @@ export default function RecipeReviewCard() {
   };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      flexGrow: 1
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flexGrow: 1,
+      }}>
       <AppBar position="sticky">
         <Toolbar>
           <IconButton
