@@ -1,9 +1,13 @@
 export type Styles = {
   'borderBox': string;
   'colorContainer': string;
-  'colorContainerHorizontalEdge': string;
-  'colorContainerSelected': string;
-  'colorContainerVerticalEdge': string;
+  'colorContainerLeftBottomRight': string;
+  'colorContainerLeftRight': string;
+  'colorContainerTopBottom': string;
+  'colorContainerTopBottomRight': string;
+  'colorContainerTopLeftBottom': string;
+  'colorContainerTopLeftBottomRight': string;
+  'colorContainerTopLeftRight': string;
   'colorSwatch': string;
   'copyBorder': string;
   'dark': string;

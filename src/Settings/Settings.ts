@@ -39,12 +39,14 @@ export default class Settings {
     readonly globalColor: Color;
     readonly copiedLocation: ColorLocation | null;
     readonly copied: Color | null;
+    readonly bottomRightLocation: ColorLocation;
 
     public static build(
         displayAs: ColorDisplayType,
+        bottomRightLocation: ColorLocation,
         flags: SettingsFlags,
     ): Settings {
-        return new Settings(displayAs, Color.build('blue'), null, null, null, flags);
+        return new Settings(displayAs, Color.build('blue'), null, null, null, bottomRightLocation, flags);
     }
 
     public buildNewFromDeselection() {
@@ -59,6 +61,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         return new Settings(
             displayAs,
@@ -66,6 +69,7 @@ export default class Settings {
             null,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -87,6 +91,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         if (location.equals(selectedLocation)) return this;
         return new Settings(
@@ -95,6 +100,7 @@ export default class Settings {
             location,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -132,6 +138,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         return new Settings(
             displayAs,
@@ -139,6 +146,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -161,6 +169,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         return new Settings(
             displayAs,
@@ -168,6 +177,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -190,6 +200,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         return new Settings(
             displayAs,
@@ -197,6 +208,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -220,6 +232,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         return new Settings(
             displayAs,
@@ -227,6 +240,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -249,6 +263,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         if (this.isValueLocked === isValueLocked && (isLightnessLocked === (isLightnessLocked && !isValueLocked))) return this;
         return new Settings(
@@ -257,6 +272,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -278,6 +294,7 @@ export default class Settings {
             isValueLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         if (this.isLightnessLocked === isLightnessLocked && (isValueLocked === (isValueLocked && !isLightnessLocked))) return this;
         return new Settings(
@@ -286,6 +303,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -309,6 +327,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         return new Settings(
             displayAs,
@@ -316,6 +335,7 @@ export default class Settings {
             selectedLocation,
             copiedLocation,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -338,6 +358,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
             copied,
+            bottomRightLocation,
         } = this;
         if (copiedLocation == null) return this;
         return new Settings(
@@ -346,6 +367,7 @@ export default class Settings {
             selectedLocation,
             null,
             copied,
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -367,6 +389,7 @@ export default class Settings {
             isValueLocked,
             isLightnessLocked,
             copiedLocation,
+            bottomRightLocation,
         } = this;
         if (copiedLocation === location) return this;
         return new Settings(
@@ -375,6 +398,7 @@ export default class Settings {
             selectedLocation,
             location,
             palette.getColor(location),
+            bottomRightLocation,
             {
                 isHorizontal,
                 isHueLocked,
@@ -391,6 +415,7 @@ export default class Settings {
         selectedLocation: ColorLocation | null,
         copiedLocation: ColorLocation | null,
         copied: Color | null,
+        bottomRightLocation: ColorLocation,
         {
             isHorizontal,
             isHueLocked,
@@ -409,5 +434,6 @@ export default class Settings {
         this.globalColor = globalColor;
         this.copiedLocation = copiedLocation;
         this.copied = copied;
+        this.bottomRightLocation = bottomRightLocation;
     }
 }

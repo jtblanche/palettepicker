@@ -11,6 +11,7 @@
 .horizontalTop {
     grid-area: horizontaltop;
     display: flex;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
 }
@@ -18,6 +19,7 @@
 .horizontalBottom {
     grid-area: horizontalbottom;
     display: flex;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
 }
@@ -25,6 +27,7 @@
 .verticalLeft {
     grid-area: verticalleft;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
@@ -32,11 +35,12 @@
 .verticalRight {
     grid-area: verticalright;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.colorContainerSelected {
+.colorContainerTopLeftBottomRight {
     display: grid;
     grid-template-columns: 20px 1fr 20px;
     grid-template-rows: 20px 1fr 20px;
@@ -47,12 +51,84 @@
         "horizontalbottom horizontalbottom horizontalbottom";
 }
 
-.colorContainerSelected .borderBox {
+.colorContainerTopLeftBottomRight .borderBox {
     border: 5px solid;
     border-color: inherit;
 }
 
-.colorContainerVerticalEdge {
+.colorContainerTopLeftBottom {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "horizontaltop horizontaltop horizontaltop"
+        "verticalleft color color"
+        "horizontalbottom horizontalbottom horizontalbottom";
+}
+
+.colorContainerTopLeftBottom .borderBox {
+    border-top: 5px solid;
+    border-left: 5px solid;
+    border-bottom: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainerTopLeftRight {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "verticalleft horizontaltop verticalright"
+        "verticalleft color verticalRight"
+        "verticalleft color verticalRight";
+}
+
+.colorContainerTopLeftRight .borderBox {
+    border-top: 5px solid;
+    border-left: 5px solid;
+    border-right: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainerTopBottomRight {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "horizontaltop horizontaltop horizontaltop"
+        "color color verticalRight"
+        "horizontalbottom horizontalbottom horizontalbottom";
+}
+
+.colorContainerTopBottomRight .borderBox {
+    border-top: 5px solid;
+    border-bottom: 5px solid;
+    border-right: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainerLeftBottomRight {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "verticalleft color verticalRight"
+        "verticalleft color verticalRight"
+        "verticalleft horizontalbottom verticalRight";
+}
+
+.colorContainerLeftBottomRight .borderBox {
+    border-left: 5px solid;
+    border-bottom: 5px solid;
+    border-right: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainerLeftRight {
     display: grid;
     grid-template-columns: 20px 1fr 20px;
     grid-template-rows: 20px 1fr 20px;
@@ -63,13 +139,13 @@
         "verticalleft color verticalright";
 }
 
-.colorContainerVerticalEdge .borderBox {
+.colorContainerLeftRight .borderBox {
     border-left: 5px solid;
     border-right: 5px solid;
     border-color: inherit;
 }
 
-.colorContainerHorizontalEdge {
+.colorContainerTopBottom {
     display: grid;
     grid-template-columns: 20px 1fr 20px;
     grid-template-rows: 20px 1fr 20px;
@@ -80,7 +156,7 @@
         "horizontalbottom horizontalbottom horizontalbottom";
 }
 
-.colorContainerHorizontalEdge .borderBox {
+.colorContainerTopBottom .borderBox {
     border-top: 5px solid;
     border-bottom: 5px solid;
     border-color: inherit;
@@ -115,8 +191,10 @@
 
 .light {
     border-color: white;
+    color: white;
 }
 
 .dark {
     border-color: black;
+    color: black;
 }

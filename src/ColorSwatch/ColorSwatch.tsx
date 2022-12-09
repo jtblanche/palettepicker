@@ -2,6 +2,9 @@ import React from 'react';
 import ColorSwatchPicker from '../ColorSwatchPicker';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import RemoveIcon from '@mui/icons-material/Remove';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
@@ -31,17 +34,43 @@ export default function ColorSwatch({
     const isSelected = location.equals(settings.selectedLocation);
     const isShadeSelected = location.equalsSwatchIndexOnly(settings.selectedLocation);
     const isHueSelected = location.equalsStubIndexOnly(settings.selectedLocation);
+    const isTopMost = settings.isHorizontal ? location.stubIndex == 0 : location.swatchIndex == 0;
+    const isLeftMost = settings.isHorizontal ? location.swatchIndex == 0 : location.stubIndex == 0;
+    const isBottomMost = settings.isHorizontal
+        ? location.stubIndex == settings.bottomRightLocation.stubIndex
+        : location.swatchIndex == settings.bottomRightLocation.swatchIndex;
+    const isRightMost = settings.isHorizontal
+        ? location.swatchIndex == settings.bottomRightLocation.swatchIndex
+        : location.stubIndex == settings.bottomRightLocation.stubIndex;
 
     const brightnessClass = swatch.color.isDark ? styles.light : styles.dark;
 
     const showAnyEdges = isSelected || isHueSelected || isShadeSelected;
     const showHorizontalEdges = settings.isHorizontal ? isHueSelected : isShadeSelected;
     const showVerticalEdges = settings.isHorizontal ? isShadeSelected : isHueSelected;
-    const containerClass = isSelected ? styles.colorContainerSelected
-        : showHorizontalEdges ? styles.colorContainerHorizontalEdge
-            : showVerticalEdges ? styles.colorContainerVerticalEdge
-                : styles.colorContainer;
     const backgroundColor = swatch.color.toBackgroundColor(settings);
+
+    const isTitleOfStub = location.swatchIndex == 0;
+    const isTitleOfShade = location.stubIndex == 0;
+    const isEndOfStub = location.swatchIndex == settings.bottomRightLocation.swatchIndex;
+    const isEndOfShade = location.stubIndex == settings.bottomRightLocation.stubIndex;
+    const showStubTitle = (isSelected || isHueSelected) && isTitleOfStub;
+    const showShadeTitle = (isSelected || isShadeSelected) && isTitleOfShade;
+    const showTopEdge = isSelected || (settings.isHorizontal
+        ? (isHueSelected || showShadeTitle)
+        : (isShadeSelected || showStubTitle));
+    const showBottomEdge = isSelected || (settings.isHorizontal
+        ? (isHueSelected || (isShadeSelected && isEndOfShade))
+        : (isShadeSelected || (isHueSelected && isEndOfStub)));
+    const showLeftEdge = isSelected || (settings.isHorizontal
+        ? (isShadeSelected || showStubTitle)
+        : (isHueSelected || showShadeTitle));
+    const showRightEdge = isSelected || (settings.isHorizontal
+        ? (isShadeSelected || (isHueSelected && isEndOfStub))
+        : (isHueSelected || (isShadeSelected && isEndOfShade)));
+    const containerClassStr = `colorContainer${showTopEdge ? 'Top' : ''}${showLeftEdge ? 'Left' : ''}${showBottomEdge ? 'Bottom' : ''}${showRightEdge ? 'Right' : ''}`;
+    /* @ts-ignore */
+    const containerClass = styles[containerClassStr];
 
     return (
         <Box
@@ -49,61 +78,110 @@ export default function ColorSwatch({
                 backgroundColor: showAnyEdges ? swatch.color.brightnessHex : 'white',
             }}
             className={`${className ?? ''} ${containerClass} ${brightnessClass}`.trim()} >
-            {(isSelected || showHorizontalEdges) && (
+            {showTopEdge && (
                 <Box
                     sx={{
                         backgroundColor: swatch.color.brightnessHex
                     }}
                     className={styles.horizontalTop}>
-                    {isSelected && (
-                        <IconButton size="small">
-                            <KeyboardArrowUpIcon />
-                        </IconButton>
+                    {settings.isHorizontal && showShadeTitle && (
+                        <React.Fragment>
+                            <IconButton size="small" color="inherit">
+                                <DeleteIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit">
+                                <KeyboardArrowLeftIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit">
+                                <KeyboardArrowRightIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit">
+                                <AddIcon />
+                            </IconButton>
+                        </React.Fragment>
+                    )}
+                    {!settings.isHorizontal && showStubTitle && (
+                        <React.Fragment>
+                            <IconButton size="small" color="inherit" onClick={methods.removeStub}>
+                                <DeleteIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit">
+                                <KeyboardArrowLeftIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit">
+                                <KeyboardArrowRightIcon />
+                            </IconButton>
+                            <IconButton size="small" color="inherit" onClick={methods.addStub}>
+                                <AddIcon />
+                            </IconButton>
+                        </React.Fragment>
                     )}
                 </Box>
-            )}
-            {(isSelected || showVerticalEdges) && (
-                <React.Fragment>
+            )
+            }
+            {
+                showLeftEdge && (
                     <Box
                         sx={{
                             backgroundColor: swatch.color.brightnessHex
                         }}
                         className={styles.verticalLeft}>
 
-                        {isSelected && (
-                            <IconButton size="small">
-                                <KeyboardArrowLeftIcon />
-                            </IconButton>
+                        {settings.isHorizontal && showStubTitle && (
+                            <React.Fragment>
+                                <IconButton size="small" color="inherit" onClick={methods.removeStub}>
+                                    <DeleteIcon />
+                                </IconButton>
+                                <IconButton size="small" color="inherit">
+                                    <KeyboardArrowUpIcon />
+                                </IconButton>
+                                <IconButton size="small" color="inherit">
+                                    <KeyboardArrowDownIcon />
+                                </IconButton>
+                                <IconButton size="small" color="inherit" onClick={methods.addStub}>
+                                    <AddIcon />
+                                </IconButton>
+                            </React.Fragment>
+                        )}
+                        {!settings.isHorizontal && showShadeTitle && (
+                            <React.Fragment>
+                                <IconButton size="small" color="inherit">
+                                    <DeleteIcon />
+                                </IconButton>
+                                <IconButton size="small" color="inherit">
+                                    <KeyboardArrowUpIcon />
+                                </IconButton>
+                                <IconButton size="small" color="inherit">
+                                    <KeyboardArrowDownIcon />
+                                </IconButton>
+                                <IconButton size="small" color="inherit">
+                                    <AddIcon />
+                                </IconButton>
+                            </React.Fragment>
                         )}
                     </Box>
+                )
+            }
+            {
+                showRightEdge && (
                     <Box
                         sx={{
                             backgroundColor: swatch.color.brightnessHex
                         }}
                         className={styles.verticalRight}>
-
-                        {isSelected && (
-                            <IconButton size="small">
-                                <KeyboardArrowRightIcon />
-                            </IconButton>
-                        )}
                     </Box>
-                </React.Fragment>
-            )}
-            {(isSelected || showHorizontalEdges) && (
-                <Box
-                    sx={{
-                        backgroundColor: swatch.color.brightnessHex
-                    }}
-                    className={styles.horizontalBottom}>
-
-                    {isSelected && (
-                        <IconButton size="small">
-                            <KeyboardArrowDownIcon />
-                        </IconButton>
-                    )}
-                </Box>
-            )}
+                )
+            }
+            {
+                showBottomEdge && (
+                    <Box
+                        sx={{
+                            backgroundColor: swatch.color.brightnessHex
+                        }}
+                        className={styles.horizontalBottom}>
+                    </Box>
+                )
+            }
             <Box className={styles.borderBox}>
                 <Box className={`${styles.colorSwatch} ${isCopied ? styles.copyBorder : ''}`.trim()}
                     onClick={() => methods.handleColorSelection(location)}

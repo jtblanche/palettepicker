@@ -70,10 +70,16 @@ export default function RecipeReviewCard() {
     ],
   ];
 
+  const _initialStubs = JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs;
+
   const _initialSettings = Settings.build(
     ((localStorage.getItem('isBrightnessMode') ?? 'false') === 'true')
       ? ColorDisplayType.Brightness
       : ColorDisplayType.Hex,
+    new ColorLocation(
+      _initialStubs.length - 1,
+      _initialStubs[0].length - 1
+    ),
     {
       isHorizontal: (localStorage.getItem('isHorizontal') ?? 'false') === 'true',
       isHueLocked: (localStorage.getItem('isHueLocked') ?? 'false') === 'true',
@@ -84,7 +90,7 @@ export default function RecipeReviewCard() {
   );
 
   const [palette, setPalette] = React.useState(Palette.build(
-    JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs,
+    _initialStubs,
     _initialSettings
   ));
 
