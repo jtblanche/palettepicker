@@ -15,18 +15,20 @@ import ListItem from '@mui/material/ListItem';
 import Color from '../Color';
 import Palette from '../Palette';
 import SaturationPicker from '../SaturationPicker';
+import Settings from '../Settings';
 
 import styles from './ColorSwatchPicker.module.scss';
 
 interface ColorSwatchPickerProps {
     color: Color,
+    settings: Settings,
     onPaste: ((result: Color) => void),
     onChange: ((result: Color) => void),
     onCopy: (() => void),
     onDeselect: (() => void),
 }
 
-export default function ColorSwatchPicker({ color, onChange, onCopy, onPaste, onDeselect }: ColorSwatchPickerProps) {
+export default function ColorSwatchPicker({ color, settings, onChange, onCopy, onPaste, onDeselect }: ColorSwatchPickerProps) {
     console.log('swatch picker changed');
 
     const handleColorChange = (newColor: Color) => {
@@ -35,8 +37,8 @@ export default function ColorSwatchPicker({ color, onChange, onCopy, onPaste, on
     };
 
     const handlePaste = () => {
-        if (Palette.copied == null || Palette.copied!.equals(color)) return;
-        onPaste(Palette.copied!);
+        if (settings.copied == null || settings.copied!.equals(color)) return;
+        onPaste(settings.copied!);
     }
 
     return (

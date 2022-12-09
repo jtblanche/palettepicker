@@ -8,12 +8,14 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import Color from '../Color';
 import Swatch from '../Swatch';
+import Settings from '../Settings';
 
 import styles from './ColorSwatch.module.scss';
 
 interface ColorSwatchProps {
     className?: string | null,
     swatch: Swatch,
+    settings: Settings,
     onChange: ((result: Color) => void),
     onPaste: ((result: Color) => void),
     onCopy: (() => void),
@@ -24,6 +26,7 @@ interface ColorSwatchProps {
 export default function ColorSwatch({
     className = null,
     swatch,
+    settings,
     onChange,
     onPaste,
     onCopy,
@@ -111,6 +114,7 @@ export default function ColorSwatch({
                     }}>
                     {swatch.isSelected ? <ColorSwatchPicker
                         color={swatch.color}
+                        settings={settings}
                         onChange={onChange}
                         onCopy={onCopy}
                         onPaste={onPaste}

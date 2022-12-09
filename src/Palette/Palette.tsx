@@ -1,6 +1,7 @@
 import { stepButtonClasses } from '@mui/material';
 import { palette } from '@mui/system';
 import Color, { ColorDisplayType } from '../Color';
+import Settings from '../Settings';
 import Stub from '../Stub';
 import Swatch from '../Swatch';
 
@@ -17,51 +18,40 @@ export enum ColorChangeType {
 
 export default class Palette {
     readonly stubs: Array<Stub>;
-    readonly isHorizontal: boolean;
-    readonly isHueLocked: boolean;
-    readonly isSaturationLocked: boolean;
-    readonly isValueLocked: boolean;
-    readonly isLightnessLocked: boolean;
-    readonly displayAs: ColorDisplayType;
-    readonly selectedLocation: ColorLocation | null;
-    readonly globalColor: Color;
-    public static copiedLocation: ColorLocation | null;
-    public static copied: Color | null;
 
     public static build(
         hexStubs: Array<Array<string>>,
-        isHorizontal: boolean,
-        isHueLocked: boolean,
-        isSaturationLocked: boolean,
-        isValueLocked: boolean,
-        isLightnessLocked: boolean,
-        displayAs: ColorDisplayType
+        settings: Settings,
     ): Palette {
         const stubs = hexStubs.map(
             (stubStrings: Array<string>): Stub => {
                 const swatches = stubStrings.map(
                     (hex: string): Swatch => {
-                        const color = Color.build(displayAs, hex);
-                        return Swatch.build(color, isHorizontal)
+                        const color = Color.build(settings.displayAs, hex);
+                        return Swatch.build(color, settings.isHorizontal)
                     }
                 );
-                return Stub.build(swatches, displayAs, { isHorizontal, isHueLocked });
+                return Stub.build(swatches, settings.displayAs, { isHorizontal: settings.isHorizontal, isHueLocked: settings.isHueLocked });
             }
         );
-        return new Palette(stubs, isHorizontal, isHueLocked, isSaturationLocked, isValueLocked, isLightnessLocked, displayAs, Color.build(displayAs, 'blue'), null);
+        return new Palette(stubs);
     }
 
-    public buildNewFromDeselection() {
+    public buildNewFromDeselection(): Palette {
         let newStubs = [...this.stubs];
         newStubs = newStubs.map((stub): Stub => {
             if (stub.selectedIndex == null) return stub;
             return stub.buildNewFromDeselectAll();
         });
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, null);
+        return new Palette(newStubs);
     }
 
-    public buildNewFromSelection({ stubIndex, swatchIndex }: ColorLocation) {
-        // this.selectedLocation = { stubIndex, swatchIndex };
+    public buildNewFromSelection(settings: Settings): Palette {
+        if (settings.selectedLocation == null) return this;
+        const {
+            stubIndex,
+            swatchIndex
+        } = settings.selectedLocation!;
         let newStubs = [...this.stubs]
         newStubs = newStubs.map((stub, i): Stub => {
             const stubIsSelected = stubIndex == i;
@@ -70,14 +60,14 @@ export default class Palette {
                 ? stub.buildNewFromSelectedIndex(swatchIndex)
                 : stub.buildNewFromShadeIndex(swatchIndex)
         });
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.getColor({ stubIndex, swatchIndex }), { stubIndex, swatchIndex });
+        return new Palette(newStubs);
     }
 
-    public buildNewFromColor(color: Color, changeType: ColorChangeType): Palette {
-        if (this.globalColor == color) return this;
+    public buildNewFromColor(color: Color, changeType: ColorChangeType, settings: Settings): Palette {
+        if (settings.selectedLocation == null || this.getColor(settings.selectedLocation).equals(color)) return this;
         let newStubs = [...this.stubs];
-        if (this.selectedLocation != null) {
-            const { stubIndex, swatchIndex } = this.selectedLocation!;
+        if (settings.selectedLocation != null) {
+            const { stubIndex, swatchIndex } = settings.selectedLocation!;
             newStubs = newStubs.map((stub, i) => {
                 switch (changeType) {
                     case ColorChangeType.hue:
@@ -85,7 +75,7 @@ export default class Palette {
                             ? stub.buildNewFromHue(swatchIndex, color)
                             : stub;
                     case ColorChangeType.svl:
-                        return (this.isSaturationLocked || this.isValueLocked || this.isLightnessLocked)
+                        return (settings.isSaturationLocked || settings.isValueLocked || settings.isLightnessLocked)
                             ? (i == stubIndex)
                                 ? stub.buildNewFromSVL(swatchIndex, color, {
                                     isSaturationChange: true,
@@ -93,9 +83,9 @@ export default class Palette {
                                     isLightnessChange: false
                                 })
                                 : stub.buildNewFromSVL(swatchIndex, color, {
-                                    isSaturationChange: this.isSaturationLocked,
-                                    isValueChange: this.isValueLocked,
-                                    isLightnessChange: this.isLightnessLocked
+                                    isSaturationChange: settings.isSaturationLocked,
+                                    isValueChange: settings.isValueLocked,
+                                    isLightnessChange: settings.isLightnessLocked
                                 })
                             : (i == stubIndex)
                                 ? stub.buildNewFromSVL(swatchIndex, color, {
@@ -105,13 +95,13 @@ export default class Palette {
                                 })
                                 : stub;
                     default:
-                        return (this.isSaturationLocked || this.isValueLocked || this.isLightnessLocked)
+                        return (settings.isSaturationLocked || settings.isValueLocked || settings.isLightnessLocked)
                             ? (i == stubIndex)
                                 ? stub.buildNewFromHueAndSV(swatchIndex, color)
                                 : stub.buildNewFromSVL(swatchIndex, color, {
-                                    isSaturationChange: this.isSaturationLocked,
-                                    isValueChange: this.isValueLocked,
-                                    isLightnessChange: this.isLightnessLocked
+                                    isSaturationChange: settings.isSaturationLocked,
+                                    isValueChange: settings.isValueLocked,
+                                    isLightnessChange: settings.isLightnessLocked
                                 })
                             : (i == stubIndex)
                                 ? stub.buildNewFromHueAndSV(swatchIndex, color)
@@ -119,7 +109,7 @@ export default class Palette {
                 }
             });
         }
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, color, this.selectedLocation);
+        return new Palette(newStubs);
     }
 
     public getSwatch(location: ColorLocation): Swatch {
@@ -130,42 +120,22 @@ export default class Palette {
         return this.getSwatch(location).color;
     }
 
-    public buildNewPaletteByIsHorizontal(isHorizontal: boolean): Palette {
-        if (this.isHorizontal == isHorizontal) return this;
+    public buildNewPaletteByIsHorizontal(settings: Settings): Palette {
         let newStubs = [...this.stubs];
-        newStubs = newStubs.map((stub) => stub.buildNewFromIsHorizontal(isHorizontal));
-        return new Palette(newStubs, isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
+        newStubs = newStubs.map((stub) => stub.buildNewFromIsHorizontal(settings.isHorizontal));
+        return new Palette(newStubs);
     }
 
-    public buildNewPaletteByIsHueLocked(isHueLocked: boolean): Palette {
-        if (this.isHueLocked == isHueLocked) return this;
+    public buildNewPaletteByIsHueLocked(settings: Settings): Palette {
         let newStubs = [...this.stubs];
-        newStubs = newStubs.map((stub) => stub.buildNewFromIsHueLocked(isHueLocked));
-        return new Palette(newStubs, this.isHorizontal, isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
+        newStubs = newStubs.map((stub) => stub.buildNewFromIsHueLocked(settings.isHueLocked));
+        return new Palette(newStubs);
 
     }
 
-    public buildNewPaletteByIsSaturationLocked(isSaturationLocked: boolean): Palette {
-        if (this.isSaturationLocked == isSaturationLocked) return this;
-        return new Palette(this.stubs, this.isHorizontal, this.isHueLocked, isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
-
-    }
-
-    public buildNewPaletteByIsValueLocked(isValueLocked: boolean): Palette {
-        if (this.isValueLocked == isValueLocked && (this.isLightnessLocked == (this.isLightnessLocked && !isValueLocked))) return this;
-        return new Palette(this.stubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, isValueLocked, this.isLightnessLocked && !isValueLocked, this.displayAs, this.globalColor, this.selectedLocation);
-
-    }
-
-    public buildNewPaletteByIsLightnessLocked(isLightnessLocked: boolean): Palette {
-        if (this.isLightnessLocked == isLightnessLocked && (this.isValueLocked == (this.isValueLocked && !isLightnessLocked))) return this;
-        return new Palette(this.stubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked && !isLightnessLocked, isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
-
-    }
-
-    public buildNewFromAddNewStub(): Palette {
+    public buildNewFromAddNewStub(settings: Settings): Palette {
         let newStubs = [...this.stubs];
-        const selectedOrEnd: number = this.selectedLocation?.stubIndex ?? (newStubs.length - 1);
+        const selectedOrEnd: number = settings.selectedLocation?.stubIndex ?? (newStubs.length - 1);
         if (selectedOrEnd != -1) {
             newStubs = [
                 ...newStubs.filter((_, index) => index <= selectedOrEnd).map((stub) => stub),
@@ -181,20 +151,20 @@ export default class Palette {
             ];
             const swatches = defaultColors.map(
                 (hex: string): Swatch => {
-                    const color = Color.build(this.displayAs, hex);
-                    return Swatch.build(color, this.isHorizontal)
+                    const color = Color.build(settings.displayAs, hex);
+                    return Swatch.build(color, settings.isHorizontal)
                 }
             );
             newStubs = [
-                Stub.build(swatches, this.displayAs, { isHorizontal: this.isHorizontal, isHueLocked: this.isHueLocked }),
+                Stub.build(swatches, settings.displayAs, { isHorizontal: settings.isHorizontal, isHueLocked: settings.isHueLocked }),
             ];
         }
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
+        return new Palette(newStubs);
 
     }
 
-    public buildNewFromRemoveStub(): Palette {
-        const prevLocation = this.selectedLocation;
+    public buildNewFromRemoveStub(settings: Settings): Palette {
+        const prevLocation = settings.selectedLocation;
         const newPalette = this.buildNewFromDeselection();
         let newStubs = [...newPalette.stubs];
         const selectedOrEnd: number = prevLocation?.stubIndex ?? (newStubs.length - 1);
@@ -204,39 +174,24 @@ export default class Palette {
                 ...newStubs.splice(selectedOrEnd + 1).map((stub) => stub)
             ]
         }
-        return new Palette(newStubs, newPalette.isHorizontal, newPalette.isHueLocked, newPalette.isSaturationLocked, newPalette.isValueLocked, newPalette.isLightnessLocked, newPalette.displayAs, newPalette.globalColor, newPalette.selectedLocation);
+        return new Palette(newStubs);
 
     }
 
-    public buildNewPaletteByDisplayAs(displayAs: ColorDisplayType): Palette {
-        if (this.displayAs == displayAs) return this;
-        let newStubs = [...this.stubs];
-        newStubs = newStubs.map((stub) => stub.buildNewFromDisplayAs(displayAs));
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, displayAs, this.globalColor, this.selectedLocation);
-
-    }
-
-    public buildNewFromEmptyClipboard(): Palette {
-        if (Palette.copiedLocation == null) return this;
-        const { stubIndex, swatchIndex } = Palette.copiedLocation!;
+    public buildNewFromEmptyClipboard(settings: Settings): Palette {
+        if (settings.copiedLocation == null) return this;
+        const { stubIndex, swatchIndex } = settings.copiedLocation!;
         const newStubs = [...this.stubs];
         newStubs[stubIndex] = newStubs[stubIndex].buildNewFromIsCopied(swatchIndex, false);
-        console.log('setting palette to null');
-        Palette.copiedLocation = null;
-        Palette.copied = null;
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
+        return new Palette(newStubs);
     }
 
-    public buildNewFromSaveToClipboard(location: ColorLocation): Palette {
-        if (Palette.copiedLocation == location) return this;
-        const newPalette = this.buildNewFromEmptyClipboard();
-        console.log('setting palette to location');
-        Palette.copiedLocation = location;
-        Palette.copied = this.getColor(location);
+    public buildNewFromSaveToClipboard(location: ColorLocation, settings: Settings): Palette {
+        if (settings.copiedLocation == location) return this;
         const { stubIndex, swatchIndex } = location;
-        const newStubs = [...newPalette.stubs];
+        const newStubs = [...this.stubs];
         newStubs[stubIndex] = newStubs[stubIndex].buildNewFromIsCopied(swatchIndex, true);
-        return new Palette(newStubs, this.isHorizontal, this.isHueLocked, this.isSaturationLocked, this.isValueLocked, this.isLightnessLocked, this.displayAs, this.globalColor, this.selectedLocation);
+        return new Palette(newStubs);
     }
 
     public toHexCodes(): Array<Array<string>> {
@@ -247,23 +202,7 @@ export default class Palette {
 
     private constructor(
         stubs: Array<Stub>,
-        isHorizontal: boolean,
-        isHueLocked: boolean,
-        isSaturationLocked: boolean,
-        isValueLocked: boolean,
-        isLightnessLocked: boolean,
-        displayAs: ColorDisplayType,
-        globalColor: Color,
-        selectedLocation: ColorLocation | null,
     ) {
         this.stubs = [...stubs];
-        this.isHorizontal = isHorizontal;
-        this.isHueLocked = isHueLocked;
-        this.isSaturationLocked = isSaturationLocked;
-        this.isValueLocked = isValueLocked;
-        this.isLightnessLocked = isLightnessLocked;
-        this.displayAs = displayAs;
-        this.selectedLocation = selectedLocation;
-        this.globalColor = globalColor;
     }
 }

@@ -6,11 +6,13 @@ import Stub from '../Stub';
 
 import styles from './ColorStub.module.scss';
 import Palette from '../Palette';
+import Settings from '../Settings';
 
 
 interface ColorStubProps {
     className?: string | null,
     stub: Stub,
+    settings: Settings,
     onUpdateSelectedColor: (result: Color) => void,
     onUpdateSelectedColorSV: (result: Color) => void,
     onSwatchCopy: ((index: number) => void)
@@ -21,13 +23,14 @@ interface ColorStubProps {
 export default function ColorStub({
     className = null,
     stub,
+    settings,
     onUpdateSelectedColor,
     onUpdateSelectedColorSV,
     onSwatchCopy,
     onSwatchDeselect,
     onSwatchSelect
 }: ColorStubProps) {
-    const thisIsNull = (stub.swatches[Palette.copiedLocation?.swatchIndex ?? -1]?.isCopied ?? false) ? console.log('stub copied') : null;
+    const thisIsNull = (stub.swatches[settings.copiedLocation?.swatchIndex ?? -1]?.isCopied ?? false) ? console.log('stub copied') : null;
 
     const handleSwatchCopy = (index: number) => () => {
         onSwatchCopy(index);
@@ -51,6 +54,7 @@ export default function ColorStub({
                 <ColorSwatch
                     key={index}
                     swatch={swatch}
+                    settings={settings}
                     onChange={onUpdateSelectedColorSV}
                     onPaste={onUpdateSelectedColor}
                     onCopy={handleSwatchCopy(index)}

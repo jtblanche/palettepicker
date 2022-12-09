@@ -24,6 +24,7 @@ import tinycolor from 'tinycolor2';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import Settings from '../Settings';
 
 import './App.scss';
 
@@ -74,17 +75,25 @@ export default function RecipeReviewCard() {
     ],
   ];
 
-  const [palette, setPalette] = React.useState(Palette.build(
-    JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs,
-    (localStorage.getItem('isHorizontal') ?? 'false') === 'true',
-    (localStorage.getItem('isHueLocked') ?? 'false') === 'true',
-    (localStorage.getItem('isSaturationLocked') ?? 'false') === 'true',
-    (localStorage.getItem('isValueLocked') ?? 'false') === 'true',
-    (localStorage.getItem('isLightnessLocked') ?? 'false') === 'true',
+  const _initialSettings = Settings.build(
     ((localStorage.getItem('isBrightnessMode') ?? 'false') === 'true')
       ? ColorDisplayType.Brightness
-      : ColorDisplayType.Hex
+      : ColorDisplayType.Hex,
+    {
+      isHorizontal: (localStorage.getItem('isHorizontal') ?? 'false') === 'true',
+      isHueLocked: (localStorage.getItem('isHueLocked') ?? 'false') === 'true',
+      isSaturationLocked: (localStorage.getItem('isSaturationLocked') ?? 'false') === 'true',
+      isValueLocked: (localStorage.getItem('isValueLocked') ?? 'false') === 'true',
+      isLightnessLocked: (localStorage.getItem('isLightnessLocked') ?? 'false') === 'true',
+    }
+  );
+
+  const [palette, setPalette] = React.useState(Palette.build(
+    JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs,
+    _initialSettings
   ));
+
+  const [settings, setSettings] = React.useState(_initialSettings);
 
   const [isEditingStubNumber, setIsEditingStubNumber] = React.useState(false)
 
@@ -102,68 +111,68 @@ export default function RecipeReviewCard() {
   }
 
   const handleToggleDirection = () => {
-    setPalette(oldPalette => {
-      const newIsHorizontal = !oldPalette.isHorizontal;
+    setSettings(oldSettings => {
+      const newIsHorizontal = !oldSettings.isHorizontal;
       localStorage.setItem('isHorizontal', newIsHorizontal.toString());
-      return oldPalette.buildNewPaletteByIsHorizontal(newIsHorizontal)
+      return oldSettings.buildNewFromIsHorizontal(newIsHorizontal)
     });
   }
 
   const handleToggleHueLock = () => {
-    setPalette(oldPalette => {
-      const newIsHueLocked = !oldPalette.isHueLocked;
+    setSettings(oldSettings => {
+      const newIsHueLocked = !oldSettings.isHueLocked;
       localStorage.setItem('isHueLocked', newIsHueLocked.toString());
-      return oldPalette.buildNewPaletteByIsHueLocked(newIsHueLocked);
+      return oldSettings.buildNewFromIsHueLocked(newIsHueLocked);
     });
   }
 
   const handleSwatchCopy = (location: ColorLocation) => {
-    setPalette(oldPalette => oldPalette.buildNewFromSaveToClipboard(location));
+    setSettings(oldSettings => oldSettings.buildNewFromSaveToClipboard(location, palette));
   }
 
   const handleToggleSaturationLock = () => {
-    setPalette(oldPalette => {
-      const newIsSVLocked = !oldPalette.isSaturationLocked;
+    setSettings(oldSettings => {
+      const newIsSVLocked = !oldSettings.isSaturationLocked;
       localStorage.setItem('isSaturationLocked', newIsSVLocked.toString());
-      return oldPalette.buildNewPaletteByIsSaturationLocked(newIsSVLocked);
+      return oldSettings.buildNewFromIsSaturationLocked(newIsSVLocked);
     });
   }
 
   const handleToggleValueLock = () => {
-    setPalette(oldPalette => {
-      const newIsSVLocked = !oldPalette.isValueLocked;
+    setSettings(oldSettings => {
+      const newIsSVLocked = !oldSettings.isValueLocked;
       localStorage.setItem('isValueLocked', newIsSVLocked.toString());
-      return oldPalette.buildNewPaletteByIsValueLocked(newIsSVLocked);
+      return oldSettings.buildNewFromIsValueLocked(newIsSVLocked);
     });
   }
 
   const handleToggleLightnessLock = () => {
-    setPalette(oldPalette => {
-      const newIsSVLocked = !oldPalette.isLightnessLocked;
+    setSettings(oldSettings => {
+      const newIsSVLocked = !oldSettings.isLightnessLocked;
       localStorage.setItem('isLightnessLocked', newIsSVLocked.toString());
-      return oldPalette.buildNewPaletteByIsLightnessLocked(newIsSVLocked);
+      return oldSettings.buildNewFromIsLightnessLocked(newIsSVLocked);
     });
   }
 
   const handleToggleIsBrightnessMode = () => {
-    setPalette(oldPalette => {
-      const newIsBrightnessMode = !(oldPalette.displayAs == ColorDisplayType.Brightness);
+    setSettings(oldSettings => {
+      const newIsBrightnessMode = !(oldSettings.displayAs == ColorDisplayType.Brightness);
       localStorage.setItem('isBrightnessMode', newIsBrightnessMode.toString());
-      return oldPalette.buildNewPaletteByDisplayAs(newIsBrightnessMode ? ColorDisplayType.Brightness : ColorDisplayType.RGB)
+      return oldSettings.buildNewFromDisplayAs(newIsBrightnessMode ? ColorDisplayType.Brightness : ColorDisplayType.RGB)
     });
   }
 
   const handleColorSelection = (location: ColorLocation) => {
-    setPalette(oldPalette => oldPalette.buildNewFromSelection(location));
+    setSettings(oldSettings => oldSettings.buildNewFromSelection(location, palette));
   }
 
   const handleColorDeselection = () => {
-    setPalette(oldPalette => oldPalette.buildNewFromDeselection());
+    setSettings(oldSettings => oldSettings.buildNewFromDeselection());
   }
 
   const handleSelectedColorChange = (changeType: ColorChangeType) => (color: Color) => {
     setPalette(oldPalette => {
-      const newPalette = oldPalette.buildNewFromColor(color, changeType);
+      const newPalette = oldPalette.buildNewFromColor(color, changeType, settings);
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
       return newPalette;
     });
@@ -193,7 +202,7 @@ export default function RecipeReviewCard() {
 
   const addStub = () => {
     setPalette(oldPalette => {
-      const newPalette = oldPalette.buildNewFromAddNewStub();
+      const newPalette = oldPalette.buildNewFromAddNewStub(settings);
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
       return newPalette;
     });
@@ -201,7 +210,7 @@ export default function RecipeReviewCard() {
 
   const removeStub = () => {
     setPalette(oldPalette => {
-      const newPalette = oldPalette.buildNewFromRemoveStub();
+      const newPalette = oldPalette.buildNewFromRemoveStub(settings);
       localStorage.setItem('stubs', JSON.stringify(newPalette.toHexCodes()));
       return newPalette;
     });
@@ -274,6 +283,7 @@ export default function RecipeReviewCard() {
         </Box>
         <ColorPalette
           palette={palette}
+          settings={settings}
           onSwatchCopy={handleSwatchCopy}
           onSwatchDeselect={handleColorDeselection}
           onSwatchSelect={handleColorSelection}
@@ -302,7 +312,7 @@ export default function RecipeReviewCard() {
                 <Checkbox
                   edge="end"
                   onChange={handleToggleDirection}
-                  checked={palette.isHorizontal}
+                  checked={settings.isHorizontal}
                   inputProps={{ 'aria-labelledby': 'toggleDirection' }}
                 />
               }
@@ -316,7 +326,7 @@ export default function RecipeReviewCard() {
                 <Checkbox
                   edge="end"
                   onChange={handleToggleIsBrightnessMode}
-                  checked={palette.displayAs === ColorDisplayType.Brightness}
+                  checked={settings.displayAs === ColorDisplayType.Brightness}
                   inputProps={{ 'aria-labelledby': 'toggleBrightnessMode' }}
                 />
               }
@@ -327,10 +337,10 @@ export default function RecipeReviewCard() {
             </ListItem>
             <ListItem secondaryAction={
               <IconButton edge="end" aria-label="Lock saturation" onClick={handleToggleSaturationLock}>
-                {!palette.isSaturationLocked &&
+                {!settings.isSaturationLocked &&
                   <LockOpenIcon />
                 }
-                {palette.isSaturationLocked &&
+                {settings.isSaturationLocked &&
                   <LockIcon />
                 }
               </IconButton>
@@ -341,10 +351,10 @@ export default function RecipeReviewCard() {
             </ListItem>
             <ListItem secondaryAction={
               <IconButton edge="end" aria-label="Lock value" onClick={handleToggleValueLock}>
-                {!palette.isValueLocked &&
+                {!settings.isValueLocked &&
                   <LockOpenIcon />
                 }
-                {palette.isValueLocked &&
+                {settings.isValueLocked &&
                   <LockIcon />
                 }
               </IconButton>
@@ -355,10 +365,10 @@ export default function RecipeReviewCard() {
             </ListItem>
             <ListItem secondaryAction={
               <IconButton edge="end" aria-label="Lock lightness" onClick={handleToggleLightnessLock}>
-                {!palette.isLightnessLocked &&
+                {!settings.isLightnessLocked &&
                   <LockOpenIcon />
                 }
-                {palette.isLightnessLocked &&
+                {settings.isLightnessLocked &&
                   <LockIcon />
                 }
               </IconButton>
@@ -369,10 +379,10 @@ export default function RecipeReviewCard() {
             </ListItem>
             <ListItem secondaryAction={
               <IconButton edge="end" aria-label="Lock hue" onClick={handleToggleHueLock}>
-                {!palette.isHueLocked &&
+                {!settings.isHueLocked &&
                   <LockOpenIcon />
                 }
-                {palette.isHueLocked &&
+                {settings.isHueLocked &&
                   <LockIcon />
                 }
               </IconButton>
