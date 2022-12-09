@@ -9,6 +9,12 @@ export enum ColorDisplayType {
     Brightness,
 }
 
+interface ChangeFlags {
+    isSaturationChange: boolean;
+    isValueChange: boolean;
+    isLightnessChange: boolean;
+}
+
 export default class Color {
     readonly tinycolor: tinycolor.Instance;
     readonly displayAs: ColorDisplayType;
@@ -25,15 +31,23 @@ export default class Color {
     private _isDark: boolean | null;
     private _backgroundColor: string | null = null;
     private _outputString: string | null = null;
+    readonly lastLockedHue: number;
+    readonly lastLockedSaturation: number;
+    readonly lastLockedValue: number;
+    readonly lastLockedLightness: number;
 
     public static build(displayAs: ColorDisplayType, colorInput: tinycolor.ColorInput): Color {
-        return new Color(displayAs, tinycolor(colorInput));
+        return new Color(displayAs, new tinycolor(colorInput));
     }
 
     public buildNewFromDisplayType(displayAs: ColorDisplayType): Color {
         return new Color(
             displayAs,
             this.tinycolor,
+            this.lastLockedHue,
+            this.lastLockedSaturation,
+            this.lastLockedValue,
+            this.lastLockedLightness,
             this._rgb,
             this._rgbString,
             this._prgb,
@@ -44,24 +58,58 @@ export default class Color {
             this._hsvString,
             this._hex,
             this._brightnessHex,
-            this._isDark
+            this._isDark,
         )
     }
 
     public buildNewFromHue(updateTo: Color): Color {
-        return Color.build(this.displayAs, {
+        return new Color(this.displayAs, new tinycolor({
             h: updateTo.hsv.h,
             s: this.hsv.s,
             v: this.hsv.v
-        });
+        }),
+            updateTo.hsv.h,
+            this.lastLockedSaturation,
+            this.lastLockedValue,
+            this.lastLockedLightness);
     }
 
-    public buildNewFromSaturationAndValue(updateTo: Color): Color {
-        return Color.build(this.displayAs, {
-            h: this.hsv.h,
-            s: updateTo.hsv.s,
-            v: updateTo.hsv.v
+    public buildNewFromSVL(updateTo: Color, { isSaturationChange = false, isValueChange = false, isLightnessChange = false }: ChangeFlags): Color {
+        let lastLockedSaturation = this.lastLockedSaturation;
+        if (isSaturationChange) {
+            lastLockedSaturation = updateTo.hsv.s;
+        }
+        let lastLockedValue = this.lastLockedValue;
+        if (isValueChange) {
+            lastLockedValue = updateTo.hsv.v;
+        }
+        let lastLockedLightness = this.lastLockedLightness;
+        if (isLightnessChange) {
+            lastLockedLightness = updateTo.hsl.l;
+        }
+
+        if (isLightnessChange) {
+            const newColor = new tinycolor({
+                h: this.lastLockedHue,
+                s: lastLockedSaturation,
+                l: lastLockedLightness,
+            });
+            return new Color(this.displayAs, newColor,
+                this.lastLockedHue,
+                lastLockedSaturation,
+                lastLockedValue,
+                lastLockedLightness);
+        }
+        const newColor = new tinycolor({
+            h: this.lastLockedHue,
+            s: lastLockedSaturation,
+            v: lastLockedValue,
         });
+        return new Color(this.displayAs, newColor,
+            this.lastLockedHue,
+            lastLockedSaturation,
+            lastLockedValue,
+            lastLockedLightness);
     }
 
     private constructor(
@@ -71,6 +119,18 @@ export default class Color {
     private constructor(
         displayAs: ColorDisplayType,
         color: tinycolor.Instance,
+        lastLockedHue: number | null,
+        lastLockedSaturation: number | null,
+        lastLockedValue: number | null,
+        lastLockedLightness: number | null
+    );
+    private constructor(
+        displayAs: ColorDisplayType,
+        color: tinycolor.Instance,
+        lastLockedHue: number | null,
+        lastLockedSaturation: number | null,
+        lastLockedValue: number | null,
+        lastLockedLightness: number | null,
         rgb: ColorFormats.RGB | null,
         rgbString: string | null,
         prgb: ColorFormats.PRGB | null,
@@ -81,11 +141,15 @@ export default class Color {
         hsvString: string | null,
         hex: string | null,
         brightnessHex: string | null,
-        isDark: boolean | null
+        isDark: boolean | null,
     )
     private constructor(
         displayAs: ColorDisplayType,
         color: tinycolor.Instance,
+        lastLockedHue?: number | null,
+        lastLockedSaturation?: number | null,
+        lastLockedValue?: number | null,
+        lastLockedLightness?: number | null,
         rgb?: ColorFormats.RGB | null,
         rgbString?: string | null,
         prgb?: ColorFormats.PRGB | null,
@@ -96,7 +160,7 @@ export default class Color {
         hsvString?: string | null,
         hex?: string | null,
         brightnessHex?: string | null,
-        isDark?: boolean | null
+        isDark?: boolean | null,
     ) {
         this.tinycolor = color;
         this.displayAs = displayAs;
@@ -111,6 +175,10 @@ export default class Color {
         this._hex = hex ?? null;
         this._brightnessHex = brightnessHex ?? null;
         this._isDark = isDark ?? null;
+        this.lastLockedHue = lastLockedHue ?? this.hsv.h;
+        this.lastLockedSaturation = lastLockedSaturation ?? this.hsv.s;
+        this.lastLockedValue = lastLockedValue ?? this.hsv.v;
+        this.lastLockedLightness = lastLockedLightness ?? this.hsl.l;
     }
 
     private toRgb(): ColorFormats.RGB {

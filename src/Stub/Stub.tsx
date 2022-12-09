@@ -6,6 +6,12 @@ interface StubFlags {
     isHueLocked: boolean;
 }
 
+interface ChangeFlags {
+    isSaturationChange: boolean;
+    isValueChange: boolean;
+    isLightnessChange: boolean;
+}
+
 export default class Stub {
     readonly swatches: Array<Swatch>;
     readonly displayAs: ColorDisplayType;
@@ -26,11 +32,11 @@ export default class Stub {
         let newSwatches = [...this.swatches];
         if (isSelected) {
             newSwatches = newSwatches.map(
-                (swatch, i) => swatch.buildNewFromIsSelected(index == i)
+                (swatch, i) => swatch.buildNewFromSelectedStub(index == i)
             );
         } else {
             newSwatches = newSwatches.map(
-                (swatch, i) => swatch.buildNewFromIsShadeSelected(index == i)
+                (swatch, i) => swatch.buildNewFromDeselectedStub(index == i)
             );
         }
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, isSelected, index);
@@ -44,7 +50,9 @@ export default class Stub {
 
     public buildNewFromIsHorizontal(isHorizontal: boolean): Stub {
         if (this.isHorizontal == isHorizontal) return this;
-        return new Stub(this.swatches, this.displayAs, isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
+        let newSwatches = [...this.swatches];
+        newSwatches = newSwatches.map((swatch) => swatch.buildNewFromIsHorizontal(isHorizontal));
+        return new Stub(newSwatches, this.displayAs, isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
 
     public buildNewFromIsHueLocked(isHueLocked: boolean): Stub {
@@ -95,10 +103,10 @@ export default class Stub {
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
 
-    public buildNewFromSV(index: number, color: Color): Stub {
+    public buildNewFromSVL(index: number, color: Color, changeFlags: ChangeFlags): Stub {
         const newSwatches = [...this.swatches];
         const swatch = newSwatches[index];
-        newSwatches[index] = swatch.buildNewFromColor(swatch.color.buildNewFromSaturationAndValue(color));
+        newSwatches[index] = swatch.buildNewFromColor(swatch.color.buildNewFromSVL(color, changeFlags));
         return new Stub(newSwatches, this.displayAs, this.isHorizontal, this.isHueLocked, this.isSelected, this.selectedIndex);
     }
 

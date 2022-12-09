@@ -78,7 +78,9 @@ export default function RecipeReviewCard() {
     JSON.parse(localStorage.getItem('stubs') ?? 'null') ?? defaultStubs,
     (localStorage.getItem('isHorizontal') ?? 'false') === 'true',
     (localStorage.getItem('isHueLocked') ?? 'false') === 'true',
-    (localStorage.getItem('isSVLocked') ?? 'false') === 'true',
+    (localStorage.getItem('isSaturationLocked') ?? 'false') === 'true',
+    (localStorage.getItem('isValueLocked') ?? 'false') === 'true',
+    (localStorage.getItem('isLightnessLocked') ?? 'false') === 'true',
     ((localStorage.getItem('isBrightnessMode') ?? 'false') === 'true')
       ? ColorDisplayType.Brightness
       : ColorDisplayType.Hex
@@ -119,11 +121,27 @@ export default function RecipeReviewCard() {
     setPalette(oldPalette => oldPalette.buildNewFromSaveToClipboard(location));
   }
 
-  const handleToggleSVLock = () => {
+  const handleToggleSaturationLock = () => {
     setPalette(oldPalette => {
-      const newIsSVLocked = !oldPalette.isSVLocked;
-      localStorage.setItem('isSVLocked', newIsSVLocked.toString());
-      return oldPalette.buildNewPaletteByIsSVLocked(newIsSVLocked);
+      const newIsSVLocked = !oldPalette.isSaturationLocked;
+      localStorage.setItem('isSaturationLocked', newIsSVLocked.toString());
+      return oldPalette.buildNewPaletteByIsSaturationLocked(newIsSVLocked);
+    });
+  }
+
+  const handleToggleValueLock = () => {
+    setPalette(oldPalette => {
+      const newIsSVLocked = !oldPalette.isValueLocked;
+      localStorage.setItem('isValueLocked', newIsSVLocked.toString());
+      return oldPalette.buildNewPaletteByIsValueLocked(newIsSVLocked);
+    });
+  }
+
+  const handleToggleLightnessLock = () => {
+    setPalette(oldPalette => {
+      const newIsSVLocked = !oldPalette.isLightnessLocked;
+      localStorage.setItem('isLightnessLocked', newIsSVLocked.toString());
+      return oldPalette.buildNewPaletteByIsLightnessLocked(newIsSVLocked);
     });
   }
 
@@ -259,7 +277,7 @@ export default function RecipeReviewCard() {
           onSwatchCopy={handleSwatchCopy}
           onSwatchDeselect={handleColorDeselection}
           onSwatchSelect={handleColorSelection}
-          onUpdateSelectedColorSV={handleSelectedColorChange(ColorChangeType.sv)}
+          onUpdateSelectedColorSV={handleSelectedColorChange(ColorChangeType.svl)}
           onUpdateSelectedColor={handleSelectedColorChange(ColorChangeType.all)}
         />
       </Box>
@@ -308,17 +326,45 @@ export default function RecipeReviewCard() {
               </ListItemButton>
             </ListItem>
             <ListItem secondaryAction={
-              <IconButton edge="end" aria-label="Lock saturation and value" onClick={handleToggleSVLock}>
-                {!palette.isSVLocked &&
+              <IconButton edge="end" aria-label="Lock saturation" onClick={handleToggleSaturationLock}>
+                {!palette.isSaturationLocked &&
                   <LockOpenIcon />
                 }
-                {palette.isSVLocked &&
+                {palette.isSaturationLocked &&
                   <LockIcon />
                 }
               </IconButton>
             }>
-              <ListItemButton role={undefined} onClick={handleToggleSVLock} dense>
-                <ListItemText primary={'Lock saturation and value'} />
+              <ListItemButton role={undefined} onClick={handleToggleSaturationLock} dense>
+                <ListItemText primary={'Lock saturation'} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem secondaryAction={
+              <IconButton edge="end" aria-label="Lock value" onClick={handleToggleValueLock}>
+                {!palette.isValueLocked &&
+                  <LockOpenIcon />
+                }
+                {palette.isValueLocked &&
+                  <LockIcon />
+                }
+              </IconButton>
+            }>
+              <ListItemButton role={undefined} onClick={handleToggleValueLock} dense>
+                <ListItemText primary={'Lock value'} />
+              </ListItemButton>
+            </ListItem>
+            <ListItem secondaryAction={
+              <IconButton edge="end" aria-label="Lock lightness" onClick={handleToggleLightnessLock}>
+                {!palette.isLightnessLocked &&
+                  <LockOpenIcon />
+                }
+                {palette.isLightnessLocked &&
+                  <LockIcon />
+                }
+              </IconButton>
+            }>
+              <ListItemButton role={undefined} onClick={handleToggleLightnessLock} dense>
+                <ListItemText primary={'Lock lightness'} />
               </ListItemButton>
             </ListItem>
             <ListItem secondaryAction={

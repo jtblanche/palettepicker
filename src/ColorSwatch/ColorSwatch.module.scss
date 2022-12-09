@@ -4,12 +4,119 @@
     justify-content: center;
     align-items: center;
     border-radius: 5px;
+    width: 100%;
+    height: 100%;
+}
+
+.horizontalTop {
+    grid-area: horizontaltop;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.horizontalBottom {
+    grid-area: horizontalbottom;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.verticalLeft {
+    grid-area: verticalleft;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.verticalRight {
+    grid-area: verticalright;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.colorContainerSelected {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "horizontaltop horizontaltop horizontaltop"
+        "verticalleft color verticalright"
+        "horizontalbottom horizontalbottom horizontalbottom";
+}
+
+.colorContainerSelected .borderBox {
+    border: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainerVerticalEdge {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "verticalleft color verticalright"
+        "verticalleft color verticalright"
+        "verticalleft color verticalright";
+}
+
+.colorContainerVerticalEdge .borderBox {
+    border-left: 5px solid;
+    border-right: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainerHorizontalEdge {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "horizontaltop horizontaltop horizontaltop"
+        "color color color"
+        "horizontalbottom horizontalbottom horizontalbottom";
+}
+
+.colorContainerHorizontalEdge .borderBox {
+    border-top: 5px solid;
+    border-bottom: 5px solid;
+    border-color: inherit;
+}
+
+.colorContainer {
+    display: grid;
+    grid-template-columns: 20px 1fr 20px;
+    grid-template-rows: 20px 1fr 20px;
+
+    grid-template-areas:
+        "color color color"
+        "color color color"
+        "color color color";
+}
+
+.colorContainer .borderBox {
+    border-color: inherit;
 }
 
 .copyBorder {
-    border: 2px dashed black;
+    box-sizing: border-box;
+    border: 2px dashed;
+    border-color: inherit;
 }
 
-.copyBorderLight {
-    border: 2px dashed white;
+.borderBox {
+    box-sizing: border-box;
+    grid-area: color;
+    border-radius: 5px;
+}
+
+.light {
+    border-color: white;
+}
+
+.dark {
+    border-color: black;
 }
