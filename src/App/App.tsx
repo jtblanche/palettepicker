@@ -396,7 +396,7 @@ export default function RecipeReviewCard() {
                 <ListItemText primary={'Lock hue'} />
               </ListItemButton>
             </ListItem>
-            <ListItem
+            {/* <ListItem
               secondaryAction={
                 <IconButton edge="end" aria-label="update stub number" onClick={handleToggleEditStubNumber}>
                   {!isEditingStubNumber &&
@@ -432,7 +432,7 @@ export default function RecipeReviewCard() {
                   value={nextStubNumber}
                 />
               }
-            </ListItem>
+            </ListItem> */}
           </List>
         </Box>
       </SwipeableDrawer>
