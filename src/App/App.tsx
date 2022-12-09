@@ -21,18 +21,12 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SaveIcon from '@mui/icons-material/Save';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import tinycolor from 'tinycolor2';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Settings from '../Settings';
+import Settings, { UpdateMethods } from '../Settings';
 
 import './App.scss';
-
-interface coords {
-  x: number;
-  y: number;
-}
 
 export default function RecipeReviewCard() {
   const [open, setOpen] = React.useState(false);
@@ -102,10 +96,6 @@ export default function RecipeReviewCard() {
 
   const [nextStubNumber, setNextStubNumber] = React.useState(JSON.parse(localStorage.getItem('stubNumber') ?? '4'));
 
-  const saveStubs = (newStubs: Array<Array<string>>) => {
-    localStorage.setItem('stubs', JSON.stringify(newStubs))
-  }
-
   const onUpdateStubNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('e.validity', e.target.validity.valid);
     if (e.target.validity.valid || e.target.value === '') setNextStubNumber(e.target.value)
@@ -157,7 +147,7 @@ export default function RecipeReviewCard() {
 
   const handleToggleIsBrightnessMode = () => {
     setSettings(oldSettings => {
-      const newIsBrightnessMode = !(oldSettings.displayAs == ColorDisplayType.Brightness);
+      const newIsBrightnessMode = !(oldSettings.displayAs === ColorDisplayType.Brightness);
       localStorage.setItem('isBrightnessMode', newIsBrightnessMode.toString());
       return oldSettings.buildNewFromDisplayAs(newIsBrightnessMode ? ColorDisplayType.Brightness : ColorDisplayType.RGB)
     });
@@ -217,6 +207,23 @@ export default function RecipeReviewCard() {
       return newPalette;
     });
   }
+
+  const methods: UpdateMethods = {
+    handleToggleDirection,
+    handleToggleHueLock,
+    handleSwatchCopy,
+    handleToggleSaturationLock,
+    handleToggleValueLock,
+    handleToggleLightnessLock,
+    handleToggleIsBrightnessMode,
+    handleColorSelection,
+    handleColorDeselection,
+    handleSelectedColorChange,
+    handleToggleEditStubNumber,
+    changeStubNumber,
+    addStub,
+    removeStub,
+  };
 
   return (
     <Box sx={{
@@ -286,11 +293,7 @@ export default function RecipeReviewCard() {
         <ColorPalette
           palette={palette}
           settings={settings}
-          onSwatchCopy={handleSwatchCopy}
-          onSwatchDeselect={handleColorDeselection}
-          onSwatchSelect={handleColorSelection}
-          onUpdateSelectedColorSV={handleSelectedColorChange(ColorChangeType.svl)}
-          onUpdateSelectedColor={handleSelectedColorChange(ColorChangeType.all)}
+          methods={methods}
         />
       </Box>
       <SwipeableDrawer

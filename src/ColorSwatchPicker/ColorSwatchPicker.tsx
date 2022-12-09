@@ -4,41 +4,38 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import IconButton from '@mui/material/IconButton';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import ColorLocation from '../ColorLocation';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Color from '../Color';
-import Palette from '../Palette';
+import { ColorChangeType } from '../Palette';
 import SaturationPicker from '../SaturationPicker';
-import Settings from '../Settings';
+import Settings, { UpdateMethods } from '../Settings';
 
 import styles from './ColorSwatchPicker.module.scss';
 
 interface ColorSwatchPickerProps {
     color: Color,
     settings: Settings,
-    onPaste: ((result: Color) => void),
-    onChange: ((result: Color) => void),
-    onCopy: (() => void),
-    onDeselect: (() => void),
+    methods: UpdateMethods,
+    location: ColorLocation,
 }
 
-export default function ColorSwatchPicker({ color, settings, onChange, onCopy, onPaste, onDeselect }: ColorSwatchPickerProps) {
+export default function ColorSwatchPicker({ color, settings, methods, location }: ColorSwatchPickerProps) {
     console.log('swatch picker changed');
 
     const handleColorChange = (newColor: Color) => {
         if (newColor.equals(color)) return;
-        onChange(newColor);
+        methods.handleSelectedColorChange(ColorChangeType.svl)(newColor);
     };
 
     const handlePaste = () => {
         if (settings.copied == null || settings.copied!.equals(color)) return;
-        onPaste(settings.copied!);
+        methods.handleSelectedColorChange(ColorChangeType.all)(settings.copied!);
     }
 
     return (
@@ -47,11 +44,11 @@ export default function ColorSwatchPicker({ color, settings, onChange, onCopy, o
                 <ListItem dense disablePadding>
                     <IconButton size="small" onClick={(event) => {
                         event.stopPropagation();
-                        onDeselect();
+                        methods.handleColorDeselection();
                     }}>
                         <CloseIcon />
                     </IconButton>
-                    <IconButton size="small" onClick={onCopy}>
+                    <IconButton size="small" onClick={() => methods.handleSwatchCopy(location)}>
                         <ContentCopyIcon />
                     </IconButton>
                     <IconButton size="small" onClick={handlePaste}>

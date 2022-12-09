@@ -3,15 +3,15 @@ export default class ColorLocation {
     readonly swatchIndex: number;
 
     public equalsStubIndexOnly(other: ColorLocation | null): boolean {
-        return this.stubIndex == other?.stubIndex && this.swatchIndex != other?.swatchIndex;
+        return this.stubIndex === other?.stubIndex && this.swatchIndex !== other?.swatchIndex;
     }
 
     public equalsSwatchIndexOnly(other: ColorLocation | null): boolean {
-        return this.stubIndex != other?.stubIndex && this.swatchIndex == other?.swatchIndex;
+        return this.stubIndex !== other?.stubIndex && this.swatchIndex === other?.swatchIndex;
     }
 
     public equals(other: ColorLocation | null): boolean {
-        return this.stubIndex == other?.stubIndex && this.swatchIndex == other?.swatchIndex;
+        return this.stubIndex === other?.stubIndex && this.swatchIndex === other?.swatchIndex;
     }
 
     public constructor(

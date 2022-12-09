@@ -2,6 +2,23 @@ import Color, { ColorDisplayType } from '../Color';
 import Palette, { ColorChangeType } from '../Palette';
 import ColorLocation from '../ColorLocation';
 
+export interface UpdateMethods {
+    handleToggleDirection: () => void;
+    handleToggleHueLock: () => void;
+    handleSwatchCopy: (location: ColorLocation) => void;
+    handleToggleSaturationLock: () => void;
+    handleToggleValueLock: () => void;
+    handleToggleLightnessLock: () => void;
+    handleToggleIsBrightnessMode: () => void;
+    handleColorSelection: (location: ColorLocation) => void;
+    handleColorDeselection: () => void;
+    handleSelectedColorChange: (changeType: ColorChangeType) => (color: Color) => void;
+    handleToggleEditStubNumber: () => void;
+    changeStubNumber: (stubNumber: number) => void;
+    addStub: () => void;
+    removeStub: () => void;
+}
+
 export interface SettingsFlags {
     isHorizontal: boolean,
     isHueLocked: boolean,
@@ -132,7 +149,7 @@ export default class Settings {
     }
 
     public buildNewFromIsHorizontal(isHorizontal: boolean): Settings {
-        if (this.isHorizontal == isHorizontal) return this;
+        if (this.isHorizontal === isHorizontal) return this;
         const {
             displayAs,
             globalColor,
@@ -161,7 +178,7 @@ export default class Settings {
     }
 
     public buildNewFromIsHueLocked(isHueLocked: boolean): Settings {
-        if (this.isHueLocked == isHueLocked) return this;
+        if (this.isHueLocked === isHueLocked) return this;
         const {
             displayAs,
             globalColor,
@@ -191,7 +208,7 @@ export default class Settings {
     }
 
     public buildNewFromIsSaturationLocked(isSaturationLocked: boolean): Settings {
-        if (this.isSaturationLocked == isSaturationLocked) return this;
+        if (this.isSaturationLocked === isSaturationLocked) return this;
         const {
             displayAs,
             globalColor,
@@ -232,7 +249,7 @@ export default class Settings {
             copiedLocation,
             copied,
         } = this;
-        if (this.isValueLocked == isValueLocked && (isLightnessLocked == (isLightnessLocked && !isValueLocked))) return this;
+        if (this.isValueLocked === isValueLocked && (isLightnessLocked === (isLightnessLocked && !isValueLocked))) return this;
         return new Settings(
             displayAs,
             globalColor,
@@ -261,7 +278,7 @@ export default class Settings {
             copiedLocation,
             copied,
         } = this;
-        if (this.isLightnessLocked == isLightnessLocked && (isValueLocked == (isValueLocked && !isLightnessLocked))) return this;
+        if (this.isLightnessLocked === isLightnessLocked && (isValueLocked === (isValueLocked && !isLightnessLocked))) return this;
         return new Settings(
             displayAs,
             globalColor,
@@ -280,7 +297,7 @@ export default class Settings {
     }
 
     public buildNewFromDisplayAs(displayAs: ColorDisplayType): Settings {
-        if (this.displayAs == displayAs) return this;
+        if (this.displayAs === displayAs) return this;
         const {
             globalColor,
             selectedLocation,
@@ -350,7 +367,7 @@ export default class Settings {
             isLightnessLocked,
             copiedLocation,
         } = this;
-        if (copiedLocation == location) return this;
+        if (copiedLocation === location) return this;
         return new Settings(
             displayAs,
             globalColor,

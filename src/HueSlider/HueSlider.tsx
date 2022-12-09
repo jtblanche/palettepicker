@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Hue from 'react-color/lib/components/common/Hue';
 import PointerBox from '../PointerBox';
 import { ColorFormats } from 'tinycolor2';
-import Color, { ColorDisplayType } from '../Color';
+import Color from '../Color';
 
 interface HueSliderProps {
     color: Color,

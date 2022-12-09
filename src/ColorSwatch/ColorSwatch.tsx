@@ -6,9 +6,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import Color from '../Color';
 import Swatch from '../Swatch';
-import Settings from '../Settings';
+import Settings, { UpdateMethods } from '../Settings';
 import ColorLocation from '../ColorLocation';
 
 import styles from './ColorSwatch.module.scss';
@@ -18,11 +17,7 @@ interface ColorSwatchProps {
     swatch: Swatch,
     settings: Settings,
     location: ColorLocation,
-    onChange: ((result: Color) => void),
-    onPaste: ((result: Color) => void),
-    onCopy: (() => void),
-    onDeselect: (() => void),
-    onSelect: (() => void),
+    methods: UpdateMethods,
 }
 
 export default function ColorSwatch({
@@ -30,11 +25,7 @@ export default function ColorSwatch({
     swatch,
     settings,
     location,
-    onChange,
-    onPaste,
-    onCopy,
-    onDeselect,
-    onSelect
+    methods,
 }: ColorSwatchProps) {
     const isCopied = location.equals(settings.copiedLocation);
     const isSelected = location.equals(settings.selectedLocation);
@@ -115,17 +106,15 @@ export default function ColorSwatch({
             )}
             <Box className={styles.borderBox}>
                 <Box className={`${styles.colorSwatch} ${isCopied ? styles.copyBorder : ''}`.trim()}
-                    onClick={onSelect}
+                    onClick={() => methods.handleColorSelection(location)}
                     sx={{
                         backgroundColor: backgroundColor,
                     }}>
                     {isSelected ? <ColorSwatchPicker
                         color={swatch.color}
+                        location={location}
                         settings={settings}
-                        onChange={onChange}
-                        onCopy={onCopy}
-                        onPaste={onPaste}
-                        onDeselect={onDeselect}
+                        methods={methods}
                     /> : null}
                 </Box>
             </Box>

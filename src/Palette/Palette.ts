@@ -1,6 +1,4 @@
-import { stepButtonClasses } from '@mui/material';
-import { palette } from '@mui/system';
-import Color, { ColorDisplayType } from '../Color';
+import Color from '../Color';
 import ColorLocation from '../ColorLocation';
 import Settings from '../Settings';
 import Stub from '../Stub';
@@ -41,12 +39,12 @@ export default class Palette {
             newStubs = newStubs.map((stub, i) => {
                 switch (changeType) {
                     case ColorChangeType.hue:
-                        return (i == stubIndex)
+                        return (i === stubIndex)
                             ? stub.buildNewFromHue(swatchIndex, color, settings)
                             : stub;
                     case ColorChangeType.svl:
                         return (settings.isSaturationLocked || settings.isValueLocked || settings.isLightnessLocked)
-                            ? (i == stubIndex)
+                            ? (i === stubIndex)
                                 ? stub.buildNewFromSVL(swatchIndex, color, {
                                     isSaturationChange: true,
                                     isValueChange: true,
@@ -57,7 +55,7 @@ export default class Palette {
                                     isValueChange: settings.isValueLocked,
                                     isLightnessChange: settings.isLightnessLocked
                                 })
-                            : (i == stubIndex)
+                            : (i === stubIndex)
                                 ? stub.buildNewFromSVL(swatchIndex, color, {
                                     isSaturationChange: true,
                                     isValueChange: true,
@@ -66,14 +64,14 @@ export default class Palette {
                                 : stub;
                     default:
                         return (settings.isSaturationLocked || settings.isValueLocked || settings.isLightnessLocked)
-                            ? (i == stubIndex)
+                            ? (i === stubIndex)
                                 ? stub.buildNewFromHueAndSV(swatchIndex, color, settings)
                                 : stub.buildNewFromSVL(swatchIndex, color, {
                                     isSaturationChange: settings.isSaturationLocked,
                                     isValueChange: settings.isValueLocked,
                                     isLightnessChange: settings.isLightnessLocked
                                 })
-                            : (i == stubIndex)
+                            : (i === stubIndex)
                                 ? stub.buildNewFromHueAndSV(swatchIndex, color, settings)
                                 : stub;
                 }
@@ -93,7 +91,7 @@ export default class Palette {
     public buildNewFromAddNewStub(settings: Settings): Palette {
         let newStubs = [...this.stubs];
         const selectedOrEnd: number = settings.selectedLocation?.stubIndex ?? (newStubs.length - 1);
-        if (selectedOrEnd != -1) {
+        if (selectedOrEnd !== -1) {
             newStubs = [
                 ...newStubs.filter((_, index) => index <= selectedOrEnd).map((stub) => stub),
                 newStubs[selectedOrEnd].copy(),
@@ -124,7 +122,7 @@ export default class Palette {
         const prevLocation = settings.selectedLocation;
         let newStubs = [...this.stubs];
         const selectedOrEnd: number = prevLocation?.stubIndex ?? (newStubs.length - 1);
-        if (selectedOrEnd != -1) {
+        if (selectedOrEnd !== -1) {
             newStubs = [
                 ...newStubs.filter((_, index) => index < selectedOrEnd).map((stub) => stub),
                 ...newStubs.splice(selectedOrEnd + 1).map((stub) => stub)

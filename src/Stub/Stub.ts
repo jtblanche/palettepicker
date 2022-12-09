@@ -1,11 +1,6 @@
-import Color, { ColorDisplayType } from '../Color';
+import Color from '../Color';
 import Swatch from '../Swatch';
 import Settings from '../Settings';
-
-interface StubFlags {
-    isHorizontal: boolean;
-    isHueLocked: boolean;
-}
 
 interface ChangeFlags {
     isSaturationChange: boolean;
@@ -30,7 +25,7 @@ export default class Stub {
         if (!settings.isHueLocked) return this.buildNewFromSwatchColor(index, color);
         let newSwatches = [...this.swatches];
 
-        newSwatches = newSwatches.map((swatch, i) => (index == i)
+        newSwatches = newSwatches.map((swatch, i) => (index === i)
             ? swatch.buildNewFromColor(color)
             : swatch.buildNewFromColor(swatch.color.buildNewFromHue(color)));
         return new Stub(newSwatches);
