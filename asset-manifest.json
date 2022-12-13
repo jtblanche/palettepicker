@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/palettepicker/static/css/main.0001447a.css",
-    "main.js": "/palettepicker/static/js/main.ea4bff34.js",
+    "main.js": "/palettepicker/static/js/main.b38d2239.js",
     "static/js/787.c8a4badd.chunk.js": "/palettepicker/static/js/787.c8a4badd.chunk.js",
     "index.html": "/palettepicker/index.html",
     "main.0001447a.css.map": "/palettepicker/static/css/main.0001447a.css.map",
-    "main.ea4bff34.js.map": "/palettepicker/static/js/main.ea4bff34.js.map",
+    "main.b38d2239.js.map": "/palettepicker/static/js/main.b38d2239.js.map",
     "787.c8a4badd.chunk.js.map": "/palettepicker/static/js/787.c8a4badd.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0001447a.css",
-    "static/js/main.ea4bff34.js"
+    "static/js/main.b38d2239.js"
   ]
 }
