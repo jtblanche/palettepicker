@@ -235,17 +235,17 @@ export default function App() {
 
   React.useEffect(() => {
     const handleKeyDown = (event: React.KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey) {
-        event.preventDefault();
-      }
       let charCode = event.key.toLowerCase();
       if ((event.ctrlKey || event.metaKey) && charCode === 'c') {
         if (settings.selectedLocation != null) {
+          event.preventDefault();
           handleSwatchCopy(settings.selectedLocation);
         }
       } else if ((event.ctrlKey || event.metaKey) && charCode === 'v') {
+        event.preventDefault();
         handlePaste();
       } else if ((event.ctrlKey || event.metaKey) && charCode === 's') {
+        event.preventDefault();
         handleSave();
       }
     }
