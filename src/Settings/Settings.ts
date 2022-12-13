@@ -233,6 +233,36 @@ export default class Settings {
         );
     }
 
+    public buildNewFromBottomRightLocation(bottomRightLocation: ColorLocation): Settings {
+        if (this.bottomRightLocation.equals(bottomRightLocation)) return this;
+        const {
+            displayAs,
+            isHorizontal,
+            globalColor,
+            selectedLocation,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+        } = this;
+
+        return new Settings(
+            globalColor,
+            null,
+            null,
+            null,
+            bottomRightLocation,
+            {
+                isHorizontal,
+                isHueLocked,
+                isSaturationLocked,
+                isValueLocked,
+                isLightnessLocked,
+                displayAs,
+            }
+        );
+    }
+
     public buildNewFromAddShade(): Settings {
         if (this.bottomRightLocation.swatchIndex >= 9) return this;
         const {

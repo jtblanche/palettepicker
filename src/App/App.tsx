@@ -62,19 +62,38 @@ export default function App() {
 
   const [saveName, setSaveName] = React.useState(paletteProcessor.loadLastKey() ?? 'New Palette');
 
+  const [currentSaveName, setCurrentSaveName] = React.useState(saveName);
+
+  const [isEditingNextSaveName, setIsEditingNextSaveName] = React.useState(false);
+
   const [nextSaveName, setNextSaveName] = React.useState(`${saveName} 2`);
 
 
-  const handleToggleEditSaveName = () => {
-    const newIsEditingSaveName = !isEditingSaveName;
-    setIsEditingSaveName(newIsEditingSaveName);
-    if (!newIsEditingSaveName) {
+  const handleToggleEditNextSaveName = () => {
+    const newIsEditingNextSaveName = !isEditingNextSaveName;
+    setIsEditingNextSaveName(newIsEditingNextSaveName);
+    if (!newIsEditingNextSaveName) {
       if (nextSaveName.trim() !== '') {
         setSaveName(nextSaveName);
         paletteProcessor.save(palette, nextSaveName)
         setPaletteNames(paletteProcessor.loadKeys());
       } else {
         setNextSaveName(`${saveName} 2`);
+      }
+    }
+  }
+
+
+  const handleToggleEditSaveName = () => {
+    const newIsEditingSaveName = !isEditingSaveName;
+    setIsEditingSaveName(newIsEditingSaveName);
+    if (!newIsEditingSaveName) {
+      if (currentSaveName.trim() !== '') {
+        setSaveName(currentSaveName);
+        paletteProcessor.save(palette, currentSaveName)
+        setPaletteNames(paletteProcessor.loadKeys());
+      } else {
+        setCurrentSaveName(saveName);
       }
     }
   }
@@ -96,6 +115,10 @@ export default function App() {
 
   const onUpdateNextSaveName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNextSaveName(e.target.value)
+  }
+
+  const onUpdateSaveName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentSaveName(e.target.value)
   }
 
   const handleToggleDirection = () => {
@@ -147,6 +170,34 @@ export default function App() {
   const handleSave = async () => {
     paletteProcessor.save(palette, saveName);
     setPaletteNames(paletteProcessor.loadKeys());
+  }
+
+  const handleUndo = async () => {
+    setState(({ settings: oldSettings, palette: _ }) => {
+      const newPalette = paletteProcessor.undo(saveName);
+      const newSettings = oldSettings.buildNewFromBottomRightLocation(new ColorLocation(
+        newPalette.stubs.length - 1,
+        newPalette.stubs[0].swatches.length - 1,
+      ));
+      return {
+        settings: newSettings,
+        palette: newPalette,
+      }
+    });
+  }
+
+  const handleRedo = async () => {
+    setState(({ settings: oldSettings, palette: _ }) => {
+      const newPalette = paletteProcessor.redo(saveName);
+      const newSettings = oldSettings.buildNewFromBottomRightLocation(new ColorLocation(
+        newPalette.stubs.length - 1,
+        newPalette.stubs[0].swatches.length - 1,
+      ));
+      return {
+        settings: newSettings,
+        palette: newPalette,
+      }
+    });
   }
 
   const handleToggleSaturationLock = () => {
@@ -247,6 +298,13 @@ export default function App() {
       } else if ((event.ctrlKey || event.metaKey) && charCode === 's') {
         event.preventDefault();
         handleSave();
+      } else if ((event.ctrlKey || event.metaKey) && (event.shiftKey) && charCode === 'z') {
+        event.preventDefault();
+        handleRedo();
+      } else if ((event.ctrlKey || event.metaKey) && charCode === 'z') {
+        handleUndo();
+      } else if ((event.ctrlKey || event.metaKey) && charCode === 'y') {
+        handleRedo();
       }
     }
 
@@ -399,10 +457,34 @@ export default function App() {
           >
             <MenuIcon />
           </IconButton>
-          <PaletteIcon sx={{ marginRight: 3 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: 'flex' }}>
-            Palette Picker
-          </Typography>
+          <Box sx={{ flexGrow: 1, display: 'flex' }}>
+            {!isEditingSaveName && (
+              <React.Fragment>
+                <IconButton color="inherit" aria-label="Update Palette Name" onClick={handleToggleEditSaveName} sx={{ marginRight: 3 }}>
+                  <EditIcon />
+                </IconButton>
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: 'flex', marginTop: '3px' }} onClick={handleToggleEditSaveName}>
+                  {saveName}
+                </Typography>
+              </React.Fragment>
+            )}
+            {isEditingSaveName &&
+              <React.Fragment>
+                <IconButton color="inherit" aria-label="Update Palette Name" onClick={handleToggleEditSaveName} sx={{ marginRight: 3 }}>
+                  <SaveIcon />
+                </IconButton>
+                <Typography color="inherit" variant="h6" component="div" sx={{ flexGrow: 1, display: 'flex' }}>
+                  <TextField
+                    color="secondary"
+                    label="Set current palette name"
+                    variant="standard"
+                    onChange={onUpdateSaveName}
+                    value={currentSaveName}
+                  />
+                </Typography>
+              </React.Fragment>
+            }
+          </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <IconButton size="small" color="inherit" onClick={() => handleSave()}>
               <SaveIcon />
@@ -539,21 +621,21 @@ export default function App() {
             </ListItem>
             <ListItem
               secondaryAction={
-                <IconButton edge="end" aria-label="Update Palette Name" onClick={handleToggleEditSaveName}>
-                  {!isEditingSaveName &&
+                <IconButton edge="end" aria-label="Update Palette Name" onClick={handleToggleEditNextSaveName}>
+                  {!isEditingNextSaveName &&
                     <EditIcon />
                   }
-                  {isEditingSaveName &&
+                  {isEditingNextSaveName &&
                     <SaveIcon />
                   }
                 </IconButton>
               }>
-              {!isEditingSaveName &&
-                <ListItemButton role={undefined} onClick={handleToggleEditSaveName} dense>
+              {!isEditingNextSaveName &&
+                <ListItemButton role={undefined} onClick={handleToggleEditNextSaveName} dense>
                   <ListItemText primary={'Update Palette Name'} />
                 </ListItemButton>
               }
-              {isEditingSaveName &&
+              {isEditingNextSaveName &&
                 <TextField
                   fullWidth
                   label="Set current palette name"

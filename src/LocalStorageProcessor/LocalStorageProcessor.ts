@@ -14,8 +14,24 @@ export default class LocalStorageProcessor<T> {
         return '_#$%';
     }
 
+    private static get globalUnsavedPrefix(): string {
+        return '__unsaved!';
+    }
+
+    private static get globalUnsavedIndexPrefix(): string {
+        return '__unsavedind!';
+    }
+
     private static get globalKeyNamePrefix(): string {
         return '_!!!key'
+    }
+
+    private get unsavedKey(): string {
+        return `${LocalStorageProcessor.globalUnsavedPrefix}${this.inputs.uniqueName}`;
+    }
+
+    private get unsavedIndexKey(): string {
+        return `${LocalStorageProcessor.globalUnsavedIndexPrefix}${this.inputs.uniqueName}`;
     }
 
     private get lastKeyKey(): string {
@@ -30,16 +46,12 @@ export default class LocalStorageProcessor<T> {
         return `${LocalStorageProcessor.globalPrefix}${this.inputs.uniqueName}`;
     }
 
-    private static get unsavedPostKey(): string {
-        return '(Unsaved)';
-    }
-
     private loadLastFullKey(): string | null {
         return localStorage.getItem(this.lastKeyKey);
     }
 
     public loadLastKey(): string | null {
-        return localStorage.getItem(this.lastKeyKey)?.split(LocalStorageProcessor.unsavedPostKey).join('') ?? null;
+        return localStorage.getItem(this.lastKeyKey) ?? null;
     }
 
     private saveKeys(keys: Array<string>) {
@@ -51,32 +63,65 @@ export default class LocalStorageProcessor<T> {
         return (localStorage.getItem(this.keysKey)?.split(','))?.filter((key) => key != '') ?? [];
     }
 
-    public remove(extraKey: string = '') {
+    public getUnsavedIndex(): number {
+        return JSON.parse(localStorage.getItem(this.unsavedIndexKey) ?? '0');
+    }
+
+    public setUnsavedIndex(index: number) {
+        localStorage.setItem(this.unsavedIndexKey, index.toString());
+    }
+
+    public remove(extraKey: string = '', onlyPresave: boolean = false) {
         let postStr = '';
         if (extraKey != '') {
             postStr = `.${extraKey}`;
-            let keys = this.loadKeys();
-            keys = keys.filter((key) => key !== extraKey);
-            this.saveKeys(keys);
+            if (!onlyPresave) {
+                let keys = this.loadKeys();
+                keys = keys.filter((key) => key !== extraKey);
+                this.saveKeys(keys);
+            }
         }
-        localStorage.removeItem(
-            `${this.key}${postStr}`
-        );
+        if (!onlyPresave) {
+            localStorage.removeItem(
+                `${this.key}${postStr}`
+            );
+        }
+        localStorage.removeItem(`${this.unsavedKey}${postStr}`);
     }
 
     public preSave(value: T, extraKey: string) {
-        const unsavedExtraKey = `${extraKey} ${LocalStorageProcessor.unsavedPostKey}`;
-        const postStr = `.${unsavedExtraKey}`;
+        let postStr = `.${extraKey}`;
         const keys = this.loadKeys();
-        if (!keys.includes(unsavedExtraKey)) {
-            keys[keys.length] = unsavedExtraKey;
+        if (!keys.includes(extraKey)) {
+            keys[keys.length] = extraKey;
             this.saveKeys(keys);
+            this.save(value, extraKey);
         }
-        localStorage.setItem(this.lastKeyKey, extraKey);
-        localStorage.setItem(
-            `${this.key}${postStr}`,
-            this.inputs.saveToString(value)
-        );
+        let changes = this.loadUnsaved(extraKey);
+        const currentIndex = this.getUnsavedIndex();
+        changes = [value, ...changes.filter((_, index) => index < (10 + currentIndex) && index >= currentIndex)];
+        this.setUnsavedIndex(0);
+        localStorage.setItem(`${this.unsavedKey}${postStr}`, JSON.stringify(changes.map((change) => this.inputs.saveToString(change))));
+    }
+
+    public undo(extraKey: string): T {
+        let changes = this.loadUnsaved(extraKey);
+        let newIndex = this.getUnsavedIndex() + 1;
+        if (newIndex >= changes.length) {
+            newIndex = changes.length - 1;
+        }
+        this.setUnsavedIndex(newIndex);
+        return changes[newIndex] ?? this.inputs.deriveFromString(localStorage.getItem(`${this.key}.${extraKey}`) ?? 'null') ?? this.inputs.getDefault();;
+    }
+
+    public redo(extraKey: string): T {
+        let changes = this.loadUnsaved(extraKey);
+        let newIndex = this.getUnsavedIndex() - 1;
+        if (newIndex < 0) {
+            newIndex = 0;
+        }
+        this.setUnsavedIndex(newIndex);
+        return changes[newIndex] ?? this.inputs.deriveFromString(localStorage.getItem(`${this.key}.${extraKey}`) ?? 'null') ?? this.inputs.getDefault();;
     }
 
     public save(value: T, extraKey: string = '') {
@@ -88,10 +133,8 @@ export default class LocalStorageProcessor<T> {
                 keys[keys.length] = extraKey;
                 this.saveKeys(keys);
             }
-            const unsavedExtraKey = `${extraKey} ${LocalStorageProcessor.unsavedPostKey}`;
-            if (keys.includes(unsavedExtraKey)) {
-                this.remove(unsavedExtraKey);
-            }
+            this.remove(extraKey, true);
+            this.setUnsavedIndex(0);
             if (postStr != '') {
                 localStorage.setItem(this.lastKeyKey, extraKey);
             }
@@ -102,7 +145,7 @@ export default class LocalStorageProcessor<T> {
         );
     }
 
-    public load(extraKey: string = ''): T {
+    public loadUnsaved(extraKey: string): Array<T> {
         let postStr = '';
         const loadedExtraKey = extraKey == '' ? (this.loadLastFullKey() ?? '') : extraKey;
         if (loadedExtraKey != '') {
@@ -111,14 +154,27 @@ export default class LocalStorageProcessor<T> {
             if (!keys.includes(loadedExtraKey)) {
                 postStr = '';
             }
-            if (postStr !== '') {
-                const unsavedExtraKey = `${extraKey} ${LocalStorageProcessor.unsavedPostKey}`;
-                if (keys.includes(unsavedExtraKey)) {
-                    this.remove(unsavedExtraKey);
-                }
+        }
+        return JSON.parse(localStorage.getItem(`${this.unsavedKey}${postStr}`) ?? '[]').map((changeStr: string) => this.inputs.deriveFromString(changeStr)) ?? [this.inputs.getDefault()];
+    }
+
+    public load(extraKey: string = ''): T {
+        let postStr = '';
+        const lastLoaded = this.loadLastFullKey() ?? '';
+        const loadedExtraKey = extraKey == '' ? (lastLoaded ?? '') : extraKey;
+        if (loadedExtraKey != '') {
+            postStr = `.${loadedExtraKey}`;
+            const keys = this.loadKeys();
+            if (!keys.includes(loadedExtraKey)) {
+                postStr = '';
             }
         }
-        return this.inputs.deriveFromString(localStorage.getItem(`${this.key}${postStr}`) ?? 'null') ?? this.inputs.getDefault();
+        if (lastLoaded != loadedExtraKey) {
+            this.remove(lastLoaded, true);
+            this.setUnsavedIndex(0);
+        }
+        const currentIndex = this.getUnsavedIndex();
+        return this.loadUnsaved(extraKey)[currentIndex] ?? this.inputs.deriveFromString(localStorage.getItem(`${this.key}${postStr}`) ?? 'null') ?? this.inputs.getDefault();
     }
 
     constructor(inputs: ProcessorInputs<T>) {
