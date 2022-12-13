@@ -8,6 +8,7 @@ export enum ColorDisplayType {
     HSL,
     HSV,
     Unity,
+    GIMP,
     Brightness,
 }
 
@@ -35,6 +36,7 @@ export default class Color {
     private _hsvString: string | null;
     private _unity: RGB | null;
     private _unityString: string | null;
+    private _gimpString: string | null;
     private _hex: string | null;
     private _luminance: number | null;
     private _brightnessHex: string | null;
@@ -126,6 +128,7 @@ export default class Color {
         hsvString: string | null,
         unity: RGB | null,
         unityString: string | null,
+        gimpString: string | null,
         hex: string | null,
         brightnessHex: string | null,
         luminance: number | null,
@@ -147,6 +150,7 @@ export default class Color {
         hsvString?: string | null,
         unity?: RGB | null,
         unityString?: string | null,
+        gimpString?: string | null,
         hex?: string | null,
         brightnessHex?: string | null,
         luminance?: number | null,
@@ -163,6 +167,7 @@ export default class Color {
         this._hsvString = hsvString ?? null;
         this._unity = unity ?? null;
         this._unityString = unityString ?? null;
+        this._gimpString = gimpString ?? null;
         this._hex = hex ?? null;
         this._brightnessHex = brightnessHex ?? null;
         this._luminance = luminance ?? null;
@@ -268,6 +273,15 @@ export default class Color {
         return this._unityString ?? this.toUnityString();
     }
 
+    private toGIMPString(): string {
+        this._gimpString = `${this.rgb.r}\t${this.rgb.g}\t${this.rgb.b}`;
+        return this._gimpString!;
+    }
+
+    public get gimpString(): string {
+        return this._gimpString ?? this.toGIMPString();
+    }
+
     private toHex(): string {
         this._hex = `#${this.tinycolor.toHex()}`;
         return this._hex!;
@@ -365,6 +379,9 @@ export default class Color {
                 break;
             case ColorDisplayType.Unity:
                 this._outputString = this.unityString;
+                break;
+            case ColorDisplayType.GIMP:
+                this._outputString = this.gimpString;
                 break;
             case ColorDisplayType.PRGB:
                 this._outputString = this.prgbString;

@@ -210,7 +210,7 @@ export default function App() {
       const newPalette = oldPalette.buildNewFromColor(color, changeType, oldSettings);
       paletteProcessor.preSave(newPalette, saveName);
       setPaletteNames(paletteProcessor.loadKeys());
-      let newSettings = oldSettings.buildNewFromGlobalColor(color, changeType);
+      let newSettings: Settings = oldSettings.buildNewFromGlobalColor(color, changeType);
       if (newSettings.selectedLocation != null && newSettings.selectedLocation.equals(newSettings.copiedLocation)) {
         newSettings = newSettings.buildNewFromEmptyClipboard();
       }
@@ -308,6 +308,24 @@ export default function App() {
     });
   }
 
+  const saveToFile = () => {
+    if (settings.displayAs === ColorDisplayType.GIMP) {
+      return saveToGPL();
+    }
+    return saveToCSV();
+  }
+
+  const saveToGPL = () => {
+    const header = `GIMP Palette\nName: ${saveName}\nColumns: ${palette.stubs.length}\n#\n`;
+    let index = 0;
+    const body = palette.stubs.map((stub) => stub.swatches.map((swatch) => `${swatch.color.gimpString}\tIndex ${index++}`).join('\n')).join('\n');
+    const gplString = `${header}${body}`;
+    const blob = new Blob([gplString], {
+      type: "text/x-gimp-gpl;charset=utf-8"
+    });
+    saveAs(blob, `${saveName}.gpl`);
+  }
+
   const saveToCSV = () => {
     let csv: Array<Array<string>> = [[]];
     palette.stubs.forEach((stub, stubIndex) => {
@@ -389,7 +407,7 @@ export default function App() {
             <IconButton size="small" color="inherit" onClick={() => handleSave()}>
               <SaveIcon />
             </IconButton>
-            <IconButton size="small" color="inherit" onClick={() => saveToCSV()}>
+            <IconButton size="small" color="inherit" onClick={() => saveToFile()}>
               <FileDownloadIcon />
             </IconButton>
           </Box>
@@ -453,6 +471,7 @@ export default function App() {
                   onChange={handleUpdateDisplayAsType}
                 >
                   <MenuItem value={ColorDisplayType.Unity.toString()}>Unity</MenuItem>
+                  <MenuItem value={ColorDisplayType.GIMP.toString()}>GIMP Palette</MenuItem>
                   <MenuItem value={ColorDisplayType.Hex.toString()}>Hex values</MenuItem>
                   <MenuItem value={ColorDisplayType.RGB.toString()}>RGB</MenuItem>
                   <MenuItem value={ColorDisplayType.PRGB.toString()}>Percentage RGB</MenuItem>
