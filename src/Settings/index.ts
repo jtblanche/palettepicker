@@ -1,1 +1,1 @@
-export { type SettingsFlags, type UpdateMethods, default } from './Settings'
+export { type SavedSettings, type UpdateMethods, buildSettingsProcessor, default } from './Settings'

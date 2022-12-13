@@ -258,7 +258,7 @@ export default function ColorSwatchPicker({ color, settings, methods, location }
                     }}>
                         <CloseIcon />
                     </IconButton>
-                    {color.hex}
+                    {color.toString(settings)}
                     <IconButton size="small" onClick={() => methods.handleSwatchCopy(location)}>
                         <ContentCopyIcon />
                     </IconButton>

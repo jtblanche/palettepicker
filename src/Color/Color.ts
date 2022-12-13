@@ -7,6 +7,7 @@ export enum ColorDisplayType {
     PRGB,
     HSL,
     HSV,
+    Unity,
     Brightness,
 }
 
@@ -32,6 +33,8 @@ export default class Color {
     private _hslString: string | null;
     private _hsv: ColorFormats.HSV | null;
     private _hsvString: string | null;
+    private _unity: RGB | null;
+    private _unityString: string | null;
     private _hex: string | null;
     private _luminance: number | null;
     private _brightnessHex: string | null;
@@ -121,6 +124,8 @@ export default class Color {
         hslString: string | null,
         hsv: ColorFormats.HSV | null,
         hsvString: string | null,
+        unity: RGB | null,
+        unityString: string | null,
         hex: string | null,
         brightnessHex: string | null,
         luminance: number | null,
@@ -140,6 +145,8 @@ export default class Color {
         hslString?: string | null,
         hsv?: ColorFormats.HSV | null,
         hsvString?: string | null,
+        unity?: RGB | null,
+        unityString?: string | null,
         hex?: string | null,
         brightnessHex?: string | null,
         luminance?: number | null,
@@ -154,6 +161,8 @@ export default class Color {
         this._hslString = hslString ?? null;
         this._hsv = hsv ?? null;
         this._hsvString = hsvString ?? null;
+        this._unity = unity ?? null;
+        this._unityString = unityString ?? null;
         this._hex = hex ?? null;
         this._brightnessHex = brightnessHex ?? null;
         this._luminance = luminance ?? null;
@@ -210,8 +219,8 @@ export default class Color {
     }
 
     private toHslString(): string {
-        this._hex = `#${this.tinycolor.toHex()}`;
-        return this._hex!;
+        this._hslString = `#${this.tinycolor.toHslString()}`;
+        return this._hslString!;
     }
 
     public get hslString(): string {
@@ -234,6 +243,29 @@ export default class Color {
 
     public get hsvString(): string {
         return this._hsvString ?? this.toHsvString();
+    }
+
+    private toUnity(): RGB {
+        const numRGB = this.tinycolor.toRgb();
+        this._unity = {
+            r: numRGB.r / 255,
+            g: numRGB.g / 255,
+            b: numRGB.b / 255
+        }
+        return this._unity!;
+    }
+
+    public get unity(): RGB {
+        return this._unity ?? this.toUnity();
+    }
+
+    private toUnityString(): string {
+        this._unityString = `new Color(${this.unity.r.toFixed(4)}f, ${this.unity.g.toFixed(4)}f, ${this.unity.b.toFixed(4)}f, 1f)`;
+        return this._unityString!;
+    }
+
+    public get unityString(): string {
+        return this._unityString ?? this.toUnityString();
     }
 
     private toHex(): string {
@@ -279,16 +311,16 @@ export default class Color {
         return this._luminance;
     }
 
-    public toPerceivedLightnessPercent(): number {
-        const luminance = this.toLuminance();
-        if (luminance <= (216 / 24389)) {
-            return (luminance * (24389 / 27)) / 100;
-        }
-        return (Math.pow(luminance, (1 / 3)) * 116 - 16) / 100;
-    }
+    // public toPerceivedLightnessPercent(): number {
+    //     const luminance = this.toLuminance();
+    //     if (luminance <= (216 / 24389)) {
+    //         return (luminance * (24389 / 27)) / 100;
+    //     }
+    //     return (Math.pow(luminance, (1 / 3)) * 116 - 16) / 100;
+    // }
 
     private toPerceivedLightnessValue(): number {
-        return this.toPerceivedLightnessPercent() * 255;
+        return this.luminance * 255;
     }
 
     private toBrightnessHex(): string {
@@ -330,6 +362,9 @@ export default class Color {
         switch (settings.displayAs) {
             case ColorDisplayType.RGB:
                 this._outputString = this.rgbString;
+                break;
+            case ColorDisplayType.Unity:
+                this._outputString = this.unityString;
                 break;
             case ColorDisplayType.PRGB:
                 this._outputString = this.prgbString;

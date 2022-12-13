@@ -1,5 +1,6 @@
 import Color from '../Color';
 import ColorLocation from '../ColorLocation';
+import LocalStorageProcessor from '../LocalStorageProcessor';
 import Settings from '../Settings';
 import Stub from '../Stub';
 import Swatch from '../Swatch';
@@ -14,8 +15,7 @@ export default class Palette {
     readonly stubs: Array<Stub>;
 
     public static build(
-        hexStubs: Array<Array<string>>,
-        settings: Settings,
+        hexStubs: Array<Array<string>>
     ): Palette {
         const stubs = hexStubs.map(
             (stubStrings: Array<string>): Stub => {
@@ -155,9 +155,63 @@ export default class Palette {
         ));
     }
 
+    public static buildFromString(input: string): Palette | null {
+        const stringStubs: Array<Array<string>> | null = JSON.parse(input);
+        return stringStubs == null ? null : Palette.build(stringStubs);
+    }
+
+    public toSimpleString(): string {
+        return JSON.stringify(this.toHexCodes());
+    }
+
     private constructor(
         stubs: Array<Stub>,
     ) {
         this.stubs = [...stubs];
     }
 }
+
+export const paletteProcessor = new LocalStorageProcessor<Palette>({
+    uniqueName: 'Palette',
+    getDefault: () => Palette.build([
+        [
+            "#951F27",
+            "#EF5C5A",
+            "#FFA7A5",
+            "#FFEEEE"
+        ],
+        [
+            "#E95E00",
+            "#FFA427",
+            "#FFDAA4",
+            "#FFF5EA"
+        ],
+        [
+            "#998A25",
+            "#E0D100",
+            "#F4E770",
+            "#FFFFF9"
+        ],
+        [
+            "#005E01",
+            "#40BE4B",
+            "#BAF299",
+            "#F4FFF0"
+        ],
+        [
+            "#05327F",
+            "#2776FF",
+            "#95CDFF",
+            "#EFF8FD"
+        ],
+        [
+            "#522778",
+            "#9E57FF",
+            "#D1AAFF",
+            "#FBEEFF"
+        ],
+    ]),
+    saveToString: (input: Palette) => input.toSimpleString(),
+    deriveFromString: (input: string) => Palette.buildFromString(input)
+});
+

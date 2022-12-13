@@ -1,1 +1,1 @@
-export { ColorChangeType, default } from './Palette'
+export { ColorChangeType, paletteProcessor, default } from './Palette'

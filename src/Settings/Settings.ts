@@ -1,6 +1,7 @@
 import Color, { ColorDisplayType } from '../Color';
 import Palette, { ColorChangeType } from '../Palette';
 import ColorLocation from '../ColorLocation';
+import LocalStorageProcessor from '../LocalStorageProcessor';
 
 export interface UpdateMethods {
     handleToggleDirection: () => void;
@@ -14,20 +15,20 @@ export interface UpdateMethods {
     handleColorSelection: (location: ColorLocation) => void;
     handleColorDeselection: () => void;
     handleSelectedColorChange: (changeType: ColorChangeType) => (color: Color) => void;
-    handleToggleEditStubNumber: () => void;
-    changeStubNumber: (stubNumber: number) => void;
+    handleToggleEditSaveName: () => void;
     addStub: () => void;
     removeStub: () => void;
     addShade: () => void;
     removeShade: () => void;
 }
 
-export interface SettingsFlags {
+export interface SavedSettings {
     isHorizontal: boolean,
     isHueLocked: boolean,
     isSaturationLocked: boolean,
     isValueLocked: boolean,
-    isLightnessLocked: boolean
+    isLightnessLocked: boolean,
+    displayAs: ColorDisplayType,
 }
 
 export default class Settings {
@@ -44,11 +45,10 @@ export default class Settings {
     readonly bottomRightLocation: ColorLocation;
 
     public static build(
-        displayAs: ColorDisplayType,
         bottomRightLocation: ColorLocation,
-        flags: SettingsFlags,
+        flags: SavedSettings,
     ): Settings {
-        return new Settings(displayAs, Color.build('blue'), null, null, null, bottomRightLocation, flags);
+        return new Settings(Color.build('blue'), null, null, null, bottomRightLocation, flags);
     }
 
     public buildNewFromDeselection() {
@@ -66,7 +66,6 @@ export default class Settings {
             bottomRightLocation,
         } = this;
         return new Settings(
-            displayAs,
             globalColor,
             null,
             copiedLocation,
@@ -78,6 +77,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -97,7 +97,6 @@ export default class Settings {
         } = this;
         if (location.equals(selectedLocation)) return this;
         return new Settings(
-            displayAs,
             palette.getColor(location),
             location,
             copiedLocation,
@@ -109,6 +108,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -143,7 +143,6 @@ export default class Settings {
             bottomRightLocation,
         } = this;
         return new Settings(
-            displayAs,
             updatedColor,
             selectedLocation,
             copiedLocation,
@@ -155,6 +154,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -177,7 +177,6 @@ export default class Settings {
             selectedLocation!.swatchIndex) : null;
 
         return new Settings(
-            displayAs,
             globalColor,
             nextSelectedLocation,
             null,
@@ -192,6 +191,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -214,7 +214,6 @@ export default class Settings {
             selectedLocation!.swatchIndex) : null;
 
         return new Settings(
-            displayAs,
             globalColor,
             nextSelectedLocation,
             null,
@@ -229,6 +228,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -250,7 +250,6 @@ export default class Settings {
             selectedLocation!.stubIndex,
             selectedLocation!.swatchIndex + 1) : null;
         return new Settings(
-            displayAs,
             globalColor,
             nextSelectedLocation,
             null,
@@ -265,6 +264,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -287,7 +287,6 @@ export default class Settings {
             selectedLocation!.swatchIndex == 0 ? 0 : selectedLocation!.swatchIndex - 1) : null;
 
         return new Settings(
-            displayAs,
             globalColor,
             nextSelectedLocation,
             null,
@@ -302,6 +301,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -321,7 +321,6 @@ export default class Settings {
             bottomRightLocation,
         } = this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             copiedLocation,
@@ -333,6 +332,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -352,7 +352,6 @@ export default class Settings {
             bottomRightLocation,
         } = this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             copiedLocation,
@@ -364,6 +363,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
 
@@ -384,7 +384,6 @@ export default class Settings {
             bottomRightLocation,
         } = this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             copiedLocation,
@@ -396,6 +395,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
 
@@ -416,7 +416,6 @@ export default class Settings {
         } = this;
         if (this.isValueLocked === isValueLocked && (isLightnessLocked === (isLightnessLocked && !isValueLocked))) return this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             copiedLocation,
@@ -428,6 +427,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked: isLightnessLocked && !isValueLocked,
+                displayAs,
             }
         );
     }
@@ -447,7 +447,6 @@ export default class Settings {
         } = this;
         if (this.isLightnessLocked === isLightnessLocked && (isValueLocked === (isValueLocked && !isLightnessLocked))) return this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             copiedLocation,
@@ -459,6 +458,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked: isValueLocked && !isLightnessLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
 
@@ -479,7 +479,6 @@ export default class Settings {
             bottomRightLocation,
         } = this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             copiedLocation,
@@ -491,6 +490,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -511,7 +511,6 @@ export default class Settings {
         } = this;
         if (copiedLocation == null) return this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             null,
@@ -523,6 +522,7 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
@@ -542,7 +542,6 @@ export default class Settings {
         } = this;
         if (copiedLocation === location) return this;
         return new Settings(
-            displayAs,
             globalColor,
             selectedLocation,
             location,
@@ -554,12 +553,40 @@ export default class Settings {
                 isSaturationLocked,
                 isValueLocked,
                 isLightnessLocked,
+                displayAs,
             }
         );
     }
 
+    private toSavedSettings(): SavedSettings {
+        const {
+            isHorizontal,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            displayAs,
+        } = this;
+        return {
+            isHorizontal,
+            isHueLocked,
+            isSaturationLocked,
+            isValueLocked,
+            isLightnessLocked,
+            displayAs,
+        };
+    }
+
+    public toSimpleString() {
+        return JSON.stringify(this.toSavedSettings());
+    }
+
+    public static buildFromString(input: string, bottomRightLocation: ColorLocation): Settings | null {
+        const savedSettings: SavedSettings | null = JSON.parse(input) ?? null;
+        return savedSettings == null ? null : Settings.build(bottomRightLocation, savedSettings);
+    }
+
     private constructor(
-        displayAs: ColorDisplayType,
         globalColor: Color,
         selectedLocation: ColorLocation | null,
         copiedLocation: ColorLocation | null,
@@ -571,7 +598,8 @@ export default class Settings {
             isSaturationLocked,
             isValueLocked,
             isLightnessLocked,
-        }: SettingsFlags,
+            displayAs,
+        }: SavedSettings,
     ) {
         this.isHorizontal = isHorizontal;
         this.isHueLocked = isHueLocked;
@@ -585,4 +613,20 @@ export default class Settings {
         this.copied = copied;
         this.bottomRightLocation = bottomRightLocation;
     }
+}
+
+export const buildSettingsProcessor = (bottomRightLocation: ColorLocation): LocalStorageProcessor<Settings> => {
+    return new LocalStorageProcessor<Settings>({
+        uniqueName: 'Settings',
+        getDefault: () => Settings.build(bottomRightLocation, {
+            isHorizontal: false,
+            isHueLocked: false,
+            isSaturationLocked: false,
+            isValueLocked: false,
+            isLightnessLocked: false,
+            displayAs: ColorDisplayType.RGB,
+        }),
+        saveToString: (input: Settings) => input.toSimpleString(),
+        deriveFromString: (input: string) => Settings.buildFromString(input, bottomRightLocation)
+    })
 }
