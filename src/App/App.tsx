@@ -386,6 +386,9 @@ export default function App() {
             Palette Picker
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <IconButton size="small" color="inherit" onClick={() => handleSave()}>
+              <SaveIcon />
+            </IconButton>
             <IconButton size="small" color="inherit" onClick={() => saveToCSV()}>
               <FileDownloadIcon />
             </IconButton>
